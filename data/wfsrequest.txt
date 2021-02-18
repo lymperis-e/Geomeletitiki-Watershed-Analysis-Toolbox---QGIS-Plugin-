@@ -1,0 +1,1 @@
+http://mapsportal.ypen.gr/geoserver/wfs?access_token=187545178c4011e9884f005056af107c?format_options=charset%3AUTF-8&typename=geonode%3Aedafmap_1997_8&outputFormat=SHAPE-ZIP&version=1.0.0&service=WFS&request=GetFeature&access_token=187545178c4011e9884f005056af107c
