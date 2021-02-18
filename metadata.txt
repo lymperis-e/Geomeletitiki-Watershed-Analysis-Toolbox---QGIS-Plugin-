@@ -1,0 +1,23 @@
+[general]
+name=Geomeletitiki Basin Analysis Toolbox
+qgisMinimumVersion=3.6
+description=Complete watershed analysis toolbox.
+version=1.0.0
+author=Lymperis Efstathios / Geomeletitiki S.A.
+email=geo.elymperis@gmail.com
+
+about=A complete watershed basin analysis toolbox. Only needs an input DEM. Produces the watershed basin based on the DEM and a control point, and calculates the CN (SCS Curve Number) based on, included, land use data (obly for Greece)
+
+tracker=https://github.com/lymperis-e/Geomeletitiki-Watershed-Analysis-Toolbox---QGIS-Plugin/issues
+repository=https://github.com/lymperis-e/Geomeletitiki-Watershed-Analysis-Toolbox---QGIS-Plugin
+hasProcessingProvider=yes
+tags=python, watershed analysis, hydrology, channel network, SCS CN number
+homepage=https://www.geomeletitiki.gr/
+category=Analysis
+icon=icon.png
+experimental=False
+deprecated=False
+# plugin_dependencies=
+# category=
+server=False
+
