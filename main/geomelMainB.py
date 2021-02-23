@@ -1,6 +1,8 @@
 import os
-from qgis import processing
-from qgis.processing import alg
+try:
+    from qgis import processing
+except:
+    import processing
 from qgis.core import QgsProject, QgsProcessingAlgorithm, QgsVectorLayer, QgsProcessingParameterVectorDestination, QgsProcessingParameterRasterLayer, QgsProcessingParameterVectorLayer, QgsVectorDataProvider, QgsField, QgsRasterLayer, QgsRasterBandStats
 from PyQt5.QtCore import QVariant, QCoreApplication
 from datetime import datetime
@@ -195,7 +197,7 @@ class geomelMainB(QgsProcessingAlgorithm):
     
     
         # 4. Filter the watershed layer, keep only the needed watershed
-        Filter_Res = processing.run('script:geomelWAttributes',
+        Filter_Res = processing.run('geomel_watershed:geomelWAttributes',
                                    {'Watershed': Watershed,
                                    'Filtered_Watershed': 'TEMPORARY_OUTPUT',
                                    'pour_point': str(x) + ',' + str(y),
@@ -236,7 +238,7 @@ class geomelMainB(QgsProcessingAlgorithm):
     
         # 5. Watershed Stats
         watershed_stats = None
-        Stats = processing.run('script:geomelWatershedStats',
+        Stats = processing.run('geomel_watershed:geomelWatershedStats',
                                        {'Clipped_DEM': Clipped_DEM ,
                                        'Area': area,
                                        'Perimeter':perimeter,
@@ -255,7 +257,7 @@ class geomelMainB(QgsProcessingAlgorithm):
     
         # 6. CN Calculation
         
-        CN_Vector = processing.run('script:geomelCN',
+        CN_Vector = processing.run('geomel_watershed:geomelCN',
                                    {'Watershed_CN':parameters['CN_Layer'],
                                     'W_Corine' : parameters['Cor'],
                                     'W_LandUseSCS' : parameters['SCS'],

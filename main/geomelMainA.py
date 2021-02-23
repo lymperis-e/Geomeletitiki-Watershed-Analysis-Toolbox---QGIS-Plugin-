@@ -1,6 +1,9 @@
 import os
-from qgis import processing
-from qgis.processing import alg
+try:
+    from qgis import processing
+except:
+    import processing
+
 from qgis.core import QgsProject, QgsProcessingParameterRasterDestination, QgsProcessingParameterVectorDestination, QgsProcessingParameterNumber, QgsProcessingParameterRasterLayer, QgsProcessingAlgorithm, QgsVectorLayer, QgsVectorDataProvider, QgsField, QgsRasterLayer, QgsRasterBandStats
 from PyQt5.QtCore import QVariant
 from datetime import datetime
