@@ -8,7 +8,10 @@ from qgis.core import (QgsProcessing,
                        QgsVectorDataProvider, QgsProcessingFeatureSourceDefinition, QgsFeatureRequest,QgsProcessingOutputString,
                        QgsFeature, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink)
 from qgis.core import QgsFields, QgsField, QgsProject
-from qgis import processing
+try:
+    from qgis import processing
+except:
+    import processing
 from PyQt5.QtCore import QVariant
 from collections import defaultdict
 import math

@@ -12,18 +12,17 @@ from qgis.core import (QgsProcessing,
                        QgsVectorDataProvider, QgsProcessingFeatureSourceDefinition, QgsFeatureRequest,
                        QgsFeature, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink)
 from qgis.core import QgsFields, QgsField
-from qgis import processing
+try:
+    from qgis import processing
+except:
+    import processing
 from PyQt5.QtCore import QVariant
 from collections import defaultdict
 from datetime import datetime
-
-# Necessary for the following import to work
 import os,sys,inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0,parentdir)
 
-from path_util import utilProvider as utilProvider
+currentPath = os.path.dirname(__file__)
+basePath = os.path.dirname(currentPath)
 
 
 class geomelCN(QgsProcessingAlgorithm):
@@ -33,6 +32,7 @@ class geomelCN(QgsProcessingAlgorithm):
     OUTPUT = 'Watershed_CN'
     Corine = 'W_Corine'
     Soil = 'W_LandUseSCS'
+
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
@@ -85,6 +85,10 @@ class geomelCN(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
         
+        soil_path = os.path.join(basePath, "data", "edafmap_1997_8.shp")
+        corine_path = os.path.join(basePath, "data", "CLC12_GR.shp")
+
+
         # Open the log file
         path_absolute = QgsProject.instance().readPath("./")
         path = "/CN_Calculation_Log_{}".format(datetime.now())
@@ -102,7 +106,7 @@ class geomelCN(QgsProcessingAlgorithm):
         
         # 2. Clip Corine and Soil layers to the exact shape of the watershed
         Soil = processing.run('gdal:clipvectorbypolygon',
-                                   {'INPUT' : utilProvider.soil_path(),
+                                   {'INPUT' : soil_path,
                                     'MASK' : self.parameterAsVectorLayer(parameters,'Watershed',context),
                                     'OPTIONS' : '',
                                     'OUTPUT' : parameters['W_LandUseSCS'] },
@@ -114,7 +118,7 @@ class geomelCN(QgsProcessingAlgorithm):
 
 
         Corine = processing.run('gdal:clipvectorbypolygon',
-                                   {'INPUT' :  utilProvider.cor_path(),
+                                   {'INPUT' :  corine_path,
                                     'MASK' : self.parameterAsVectorLayer(parameters,'Watershed',context),
                                     'OPTIONS' : '',
                                     'OUTPUT' : parameters['W_Corine'] },
@@ -263,6 +267,8 @@ class geomelCN(QgsProcessingAlgorithm):
 
         corine_perc = defaultdict()
 
+        CN_perc = defaultdict()
+
         for feat in CN_labels.getFeatures():
             try:
                 CN = None
@@ -285,11 +291,18 @@ class geomelCN(QgsProcessingAlgorithm):
                 perc = (feat.geometry().area()/basin_area)*100
                 perc = '%.3f' % round(perc, 5)
                 
-                try:
+                #Update the Corine and CN dicts (for logging)
+                if corine_description in corine_perc:
                     corine_perc[corine_description] += float(perc)
-                except:
+                else:
                     corine_perc[corine_description] = float(perc)
+                    
 
+                if CN in CN_perc:
+                    CN_perc[CN] += float(perc)
+                else:
+                    CN_perc[CN] = float(perc)
+                
 
 
                 out_feat = QgsFeature(outFields)
@@ -309,7 +322,30 @@ class geomelCN(QgsProcessingAlgorithm):
 
         for key, value in corine_perc.items():
             log.write(str(key) + ": " + str(value)+"\n")
-        #context.layerToLoadOnCompletionDetails(dest_id)
+        
+
+
+        # Write the CN log part
+        log.write("\n\n\n")
+        log.write("\n\n\n")
+        log.write("Αριθμός Καμπύλης CN  /  % κάλυψη της λεκάνης \n")
+        log.write("-------------------------------------------------------------------------\n")
+
+
+        Sum_CN_arithm = 0
+        Sum_CN_paronom = 0
+        for key, value in CN_perc.items():
+            #Write a log entry for each CN and its %cover of the basin
+            log.write(str(key) + ": " + str(value)+"\n")
+
+            Sum_CN_arithm += key*value
+            Sum_CN_paronom += value
+        
+        log.write("\n\n")
+        Sum_CN = Sum_CN_arithm/Sum_CN_paronom
+        log.write("Συνισταμένη Τιμή CN (χωρικά σταθμισμένη): " + str(Sum_CN))
+
+        # Calculate Total CN value
 
 
 
