@@ -3,7 +3,7 @@ try:
     from qgis import processing
 except:
     import processing
-from qgis.core import QgsProject, QgsProcessingAlgorithm, QgsVectorLayer, QgsProcessingParameterVectorDestination, QgsProcessingParameterRasterLayer, QgsProcessingParameterVectorLayer, QgsVectorDataProvider, QgsField, QgsRasterLayer, QgsRasterBandStats
+from qgis.core import QgsProject, QgsProcessingAlgorithm, QgsProcessingFeatureSourceDefinition, QgsFeatureRequest, QgsVectorLayer, QgsProcessingParameterVectorDestination, QgsProcessingParameterRasterLayer, QgsProcessingParameterVectorLayer, QgsVectorDataProvider, QgsField, QgsRasterLayer, QgsRasterBandStats
 from PyQt5.QtCore import QVariant, QCoreApplication
 from datetime import datetime
 import math
@@ -129,21 +129,7 @@ class geomelMainB(QgsProcessingAlgorithm):
         Filled_DEM = self.parameterAsRasterLayer(parameters,'Filled_DEM', context)
         Pour_Point = self.parameterAsVectorLayer(parameters,'Pour_Point', context)
 
-        # Open the log file
-        path_absolute = QgsProject.instance().readPath("./")
-        path = "/Hydro_Log_{}".format(datetime.now())
-        path = path.replace(":", "_")
-        path = path[:-7]
-        path = path_absolute + path +".txt"
-        
-    
-        log = open(path, "a")
-        log.write("--------------------------Complete Watershed Analysis Log-------------------------------\n")
-        log.write("\n")
-        log.write("\n")
-        log.write("Ημερομηνία/Ώρα: " + datetime.now().strftime("%d/%m/%Y %H:%M:%S")+"\n")
-        log.write("\n")
-        
+       
     
         Catchment_Area = None
     
@@ -179,7 +165,7 @@ class geomelMainB(QgsProcessingAlgorithm):
     
     
         # 3. Run Polygonize
-        Watershed = processing.run('gdal:polygonize',
+        Initial_Watershed = processing.run('gdal:polygonize',
                                    {'BAND' : 1,
                                     'EIGHT_CONNECTEDNESS' : False,
                                     'EXTRA' : '',
@@ -192,13 +178,23 @@ class geomelMainB(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
     
-    
+
+        # 4. Fix any invalid geometries in the vectorized watershed
+        Watershed = processing.run('native:fixgeometries',
+                                   {'INPUT' : Initial_Watershed,
+                                    'OUTPUT' : 'TEMPORARY_OUTPUT' } ,
+                                   is_child_algorithm=True,
+                                   context=context,
+                                   feedback=feedback)['OUTPUT']
+        if feedback.isCanceled():
+            return {}
+
     
     
     
         # 4. Filter the watershed layer, keep only the needed watershed
         Filter_Res = processing.run('geomel_watershed:geomelWAttributes',
-                                   {'Watershed': Watershed,
+                                   {'Watershed':  Watershed,
                                    'Filtered_Watershed': 'TEMPORARY_OUTPUT',
                                    'pour_point': str(x) + ',' + str(y),
                                    'Area_Perimeter': 'TEMPORARY_OUTPUT'} ,
@@ -270,9 +266,6 @@ class geomelMainB(QgsProcessingAlgorithm):
     
         if feedback.isCanceled():
             return {}
-    
-        
-        log.close()
     
         
         return {

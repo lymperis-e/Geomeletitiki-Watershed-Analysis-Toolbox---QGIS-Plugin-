@@ -128,20 +128,7 @@ class geomelMainA(QgsProcessingAlgorithm):
         
         DEM = self.parameterAsRasterLayer(parameters,'DEM', context)
         Pour_Point = self.parameterAsVectorLayer(parameters,'Pour_Point', context)
-        # Open the log file
-        path_absolute = QgsProject.instance().readPath("./")
-        path = "/Hydro_Log_{}".format(datetime.now())
-        path = path.replace(":", "_")
-        path = path[:-7]
-        path = path_absolute + path +".txt"
         
-    
-        log = open(path, "a")
-        log.write("--------------------------Complete Watershed Analysis Log-------------------------------\n")
-        log.write("\n")
-        log.write("\n")
-        log.write("Ημερομηνία/Ώρα: " + datetime.now().strftime("%d/%m/%Y %H:%M:%S")+"\n")
-        log.write("\n")
         
     
         Catchment_Area = None
@@ -206,7 +193,7 @@ class geomelMainA(QgsProcessingAlgorithm):
         Channel_Network_Raster = RES_5['CHNLNTWRK']
     
         
-        log.close()
+       
     
         
         return {
