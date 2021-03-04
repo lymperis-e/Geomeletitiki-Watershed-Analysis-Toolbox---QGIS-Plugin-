@@ -43,6 +43,8 @@ class geomelBasinAnalysisPlugin(object):
 
     def __init__(self, iface):
         self.iface = iface
+        self.settingsDialog = None
+        self.PPointDialog = None
         self.provider = geomelBasinAnalysisProvider()
 
     def initGui(self):
@@ -54,12 +56,28 @@ class geomelBasinAnalysisPlugin(object):
         self.geomel1.setCheckable(False)
         self.iface.addToolBarIcon(self.geomel1)
 
+        #Add Pour Point Button
+        icon = QIcon(os.path.dirname(__file__) + "/icons/icon_target.png")
+        self.openPPoint = QAction(icon, "Add a Pour Point", self.iface.mainWindow())
+        self.openPPoint.triggered.connect(self.showPourPointDialog)
+        self.openPPoint.setCheckable(False)
+        self.iface.addToolBarIcon(self.openPPoint)
+
+
         #Button 2
         icon = QIcon(os.path.dirname(__file__) + "/icons/icon_2.png")
         self.geomel2 = QAction(icon, "2. Watershed Basin CN Analysis", self.iface.mainWindow())
         self.geomel2.triggered.connect(self.geomel2Dialog)
         self.geomel2.setCheckable(False)
         self.iface.addToolBarIcon(self.geomel2)
+
+
+        #Settings Dialog
+        icon = QIcon(os.path.dirname(__file__) + "/icons/icon_gear.png")
+        self.openSettings = QAction(icon, "Select data folder (Geomeletitiki W.A.)", self.iface.mainWindow())
+        self.openSettings.triggered.connect(self.showSettingsDialog)
+        self.openSettings.setCheckable(False)
+        self.iface.addToolBarIcon(self.openSettings)
 
         QgsApplication.processingRegistry().addProvider(self.provider)
 
@@ -70,11 +88,28 @@ class geomelBasinAnalysisPlugin(object):
     def geomel2Dialog(self):
         processing.execAlgorithmDialog('geomel_watershed:geomelMainB', {})
 
+    def showSettingsDialog(self):
+        if not self.settingsDialog:
+            from .Data_Settings_Dialog import DataSettingsDialog
+            self.settingsDialog = DataSettingsDialog(self.iface)
+        self.settingsDialog.show()
+
+
+    def showPourPointDialog(self):
+        if not self.PPointDialog:
+            from .Add_PPoint_Dialog import AddPPointDialog
+            self.PPointDialog = AddPPointDialog(self.iface)
+        self.PPointDialog.show()
+
+
+
 
     def unload(self):
         try:
             self.iface.removeToolBarIcon(self.geomel1)
             self.iface.removeToolBarIcon(self.geomel2)
+            self.iface.removeToolBarIcon(self.openSettings)
+            self.iface.removeToolBarIcon(self.openPPoint)
             QgsApplication.processingRegistry().removeProvider(self.provider)
         except:
             pass 

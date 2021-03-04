@@ -3,7 +3,7 @@ try:
     from qgis import processing
 except:
     import processing
-from qgis.core import QgsProject, QgsProcessingAlgorithm, QgsProcessingFeatureSourceDefinition, QgsFeatureRequest, QgsVectorLayer, QgsProcessingParameterVectorDestination, QgsProcessingParameterRasterLayer, QgsProcessingParameterVectorLayer, QgsVectorDataProvider, QgsField, QgsRasterLayer, QgsRasterBandStats
+from qgis.core import QgsProject, QgsVectorLayer, QgsProcessingParameterNumber, QgsProcessingAlgorithm, QgsProcessingFeatureSourceDefinition, QgsFeatureRequest, QgsVectorLayer, QgsProcessingParameterVectorDestination, QgsProcessingParameterRasterLayer, QgsProcessingParameterVectorLayer, QgsVectorDataProvider, QgsField, QgsRasterLayer, QgsRasterBandStats
 from PyQt5.QtCore import QVariant, QCoreApplication
 from datetime import datetime
 import math
@@ -41,6 +41,11 @@ class geomelMainB(QgsProcessingAlgorithm):
 
     Filled_DEM = 'Filled_DEM'
     Pour_Point = 'Pour_Point'
+    Channel_Net = 'Channel_Net'
+    Watershed_Basin = 'Watershed_Basin'
+    Contour_Interval = 'Contour_Interval'
+    SCS = 'SCS'
+    Corine = 'Corine'
 
     
 
@@ -99,19 +104,44 @@ class geomelMainB(QgsProcessingAlgorithm):
                 self.tr('Pour_Point')
             )
         )
-        
        
 
         self.addParameter(
+            QgsProcessingParameterNumber(
+                self.Contour_Interval,
+                self.tr('Contour Interval (in meters)'),
+                defaultValue=50
+            )
+        )
+
+        self.addParameter(
             QgsProcessingParameterVectorDestination(
-                'SCS',
+                self.Watershed_Basin,
+                self.tr('Watershed Basin')
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterVectorDestination(
+                self.SCS,
                 self.tr('SCS Cover')
             )
         )
         self.addParameter(
             QgsProcessingParameterVectorDestination(
-                'Cor',
+                self.Corine,
                 self.tr('Corine Cover')
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterVectorDestination(
+                'Contour_Lines',
+                self.tr('Clipped Contour Lines')
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterVectorDestination(
+                self.Channel_Net,
+                self.tr('Clipped Channel Network')
             )
         )
         self.addParameter(
@@ -128,6 +158,11 @@ class geomelMainB(QgsProcessingAlgorithm):
        
         Filled_DEM = self.parameterAsRasterLayer(parameters,'Filled_DEM', context)
         Pour_Point = self.parameterAsVectorLayer(parameters,'Pour_Point', context)
+        SCS = self.parameterAsOutputLayer(parameters,'SCS', context)
+        Corine = self.parameterAsOutputLayer(parameters,'Corine', context)
+        Watershed_Basin = self.parameterAsOutputLayer(parameters, 'Watershed_Basin', context)
+        Channel_Net = self.parameterAsOutputLayer(parameters, 'Channel_Net', context)
+        Contour_Interval = self.parameterAsInt(parameters, 'Contour_Interval', context)
 
        
     
@@ -192,10 +227,10 @@ class geomelMainB(QgsProcessingAlgorithm):
     
     
     
-        # 4. Filter the watershed layer, keep only the needed watershed
+        # 5. Filter the watershed layer, keep only the needed watershed
         Filter_Res = processing.run('geomel_watershed:geomelWAttributes',
                                    {'Watershed':  Watershed,
-                                   'Filtered_Watershed': 'TEMPORARY_OUTPUT',
+                                   'Filtered_Watershed': Watershed_Basin,
                                    'pour_point': str(x) + ',' + str(y),
                                    'Area_Perimeter': 'TEMPORARY_OUTPUT'} ,
                                    is_child_algorithm=True,
@@ -214,9 +249,7 @@ class geomelMainB(QgsProcessingAlgorithm):
     
     
     
-    
-    
-        # 4. Clip DEM
+        # 6. Clip DEM
         Clipped_DEM = processing.run('gdal:cliprasterbymasklayer',
                                        { 'ALPHA_BAND' : False,
                                         'CROP_TO_CUTLINE' : True,
@@ -231,8 +264,61 @@ class geomelMainB(QgsProcessingAlgorithm):
                                        feedback=feedback)['OUTPUT']
         if feedback.isCanceled():
             return {}
+
+
+        
     
-        # 5. Watershed Stats
+        # 7. Calculate Contours
+        Contours = processing.run('gdal:contour',
+                                   {'BAND' : 1,
+                                    'CREATE_3D' : False,
+                                    'EXTRA' : '',
+                                    'FIELD_NAME' : 'ELEV',
+                                    'IGNORE_NODATA' : False,
+                                    'INPUT' : Clipped_DEM,
+                                    'INTERVAL' : Contour_Interval,
+                                    'NODATA' : None,
+                                    'OFFSET' : 0,
+                                    'OUTPUT' : parameters['Contour_Lines']},
+                                   is_child_algorithm=True,
+                                   context=context,
+                                   feedback=feedback)['OUTPUT']
+        if feedback.isCanceled():
+            return {}
+
+
+
+
+        # 8. Clip the Channel Network (if it is available)
+        Channels_Initial = None
+        candidates = QgsProject.instance().mapLayersByName('Channel Network')
+
+        if len(candidates) > 0:
+            for layer in candidates:
+                if isinstance(layer, QgsVectorLayer):
+                    Channels_Initial = layer
+                    break
+                else:
+                    continue
+            Channels = processing.run('gdal:clipvectorbypolygon',
+                                       { 'INPUT' : Channels_Initial,
+                                        'MASK' : Filtered_Watershed,
+                                        'OPTIONS' : '',
+                                        'OUTPUT' : Channel_Net},
+                                       is_child_algorithm=True,
+                                       context=context,
+                                       feedback=feedback)['OUTPUT']
+            if feedback.isCanceled():
+                return {}
+        else:
+            Channels = None
+        
+
+
+
+
+    
+        # 7. Watershed Stats
         watershed_stats = None
         Stats = processing.run('geomel_watershed:geomelWatershedStats',
                                        {'Clipped_DEM': Clipped_DEM ,
@@ -251,12 +337,12 @@ class geomelMainB(QgsProcessingAlgorithm):
     
     
     
-        # 6. CN Calculation
+        # 8. CN Calculation
         
         CN_Vector = processing.run('geomel_watershed:geomelCN',
                                    {'Watershed_CN':parameters['CN_Layer'],
-                                    'W_Corine' : parameters['Cor'],
-                                    'W_LandUseSCS' : parameters['SCS'],
+                                    'W_Corine' : Corine,
+                                    'W_LandUseSCS' : SCS,
                                     'Watershed' : Filtered_Watershed },
                                    is_child_algorithm=True,
                                    context=context,
@@ -269,8 +355,8 @@ class geomelMainB(QgsProcessingAlgorithm):
     
         
         return {
-            "Watershed":Filtered_Watershed,
             "CN_Layer":CN_Vector,
-            "Filtered_Watershed":Filtered_Watershed
-            
+            "Contour_Lines": Contours,
+            "Channel_Net": Channels,
+            "Watershed_Basin":Filtered_Watershed
         }
