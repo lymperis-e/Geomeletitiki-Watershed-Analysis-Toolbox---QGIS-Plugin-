@@ -1,0 +1,41 @@
+[general]
+name=Geomeletitiki Basin Analysis Toolbox
+qgisMinimumVersion=3.16
+description=Semi-automated Hydrological Basin Analysis toolbox.
+version=2.0.1
+author=Lymperis Efstathios for Geomeletitiki Consulting Engineers S.A.
+email=geo.elymperis@gmail.com
+
+about=A complete <b>watershed basin analysis</b> toolbox based on a DEM, designed according to the methodology demanded by <b>Greek</b> legislative standards for Hydrological engineering studies. The plugin is divided into 3 main modules, which should be executed in the respective order
+    <b>Module1</b> comes first, and is executed for the whole area/DEM. The user must import a DEM and a Discharge Point (pour point) and also specify the Channel Initiation Threshold. The module produces the following outputs:
+    -<b>Flow Directions</b> raster/n-Filled DEM raster (according to Wang&Liu's method)
+    -<b>Channel Network</b> raster 
+    -<b>Channel Network</b> vector
+    -----------------------------------------
+    <b>Module2</b> handles basin/sub-basin level analysis. It ingests the Filled DEM and a Control Point and produces:
+    -The <b>watershed</b> that drains through the Discharge Point (pour point) as a vector polygon (Watershed Basin)
+    -<b>Curve Numbers</b> of the soil, as vector polygons -->CN Labels
+    -<b>SCS Soil Class</b> Cover of the basin -->SCS Cover
+    -<b>Corine Class Cover</b> of the basin -->Corine Cover
+    -<b>Contour Lines</b> (at a user-specified interval) -->Clipped Contour Lines
+    -<b>Channel Network</b>, cropped to the watershed of the basin --> Clipped Channel Network
+    -----------------------------------------
+    <b>Module3</b> calculates the longest flow path
+    -----------------------------------------
+    Through the use of this plugin, most of the analysis process is automated, with user intervention practically needed only twice, to initialize Modules 1, 2 and 3. Land use data are derived from Copernicus' CORINE2018 dataset, and soil properties are extracted from the Soil Map of Greece. In order to use the plugin, you have to download these <a href="https://drive.google.com/drive/folders/1uwq5Fixi8lvyIi0cdFhbjfmaBQsONNnK?usp=sharing">datasets</a>. Unzip the file and then specify the shapefiles' location using the 5th button of the plugin toolbar ('select data folder')
+
+    Methodology and testing by <a href="https://gr.linkedin.com/in/ioannis-georgakis-b730526a?trk=people-guest_people_search-card">Ioannis Georgakis</a>, Hydraulic Engineer M.Sc., implementation by <a href="https://gr.linkedin.com/in/efstathios-lymperis-975702188">Efstathios Lymperis</a>, Geologist & GIS Developer
+
+tracker=https://github.com/lymperis-e/Geomeletitiki-Watershed-Analysis-Toolbox---QGIS-Plugin-/issues
+repository=https://github.com/lymperis-e/Geomeletitiki-Watershed-Analysis-Toolbox---QGIS-Plugin-
+hasProcessingProvider=yes
+tags=python, watershed analysis, hydrology, channel network, SCS, CN number, curve number, longest flow path, longest flow, greek
+homepage=https://www.geomeletitiki.gr/
+category=Analysis
+icon=icon.png
+experimental=False
+deprecated=False
+# plugin_dependencies=
+# category=
+server=False
+
