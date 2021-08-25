@@ -3,4 +3,4 @@ This is the repo for the respective QGIS plugin. It was developed for the needs 
 
 Methodology by I. Georgakis, MSc Surveying Engineer
 
-Implementation by E. Lymperis, BSc Geologist & GIS Expert
+Implementation by E. Lymperis, BSc Geologist & GIS Developer
