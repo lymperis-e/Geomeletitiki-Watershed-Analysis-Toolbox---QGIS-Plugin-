@@ -3,7 +3,7 @@ from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingMultiStepFeedback
 from qgis.core import QgsProcessingParameterVectorLayer
 from qgis.core import QgsProcessingParameterField
-from qgis.core import QgsProcessingParameterFeatureSink, QgsProcessingFeatureSourceDefinition
+from qgis.core import QgsProcessingParameterFeatureSink, QgsProcessingFeatureSourceDefinition, QgsProcessingParameterEnum
 
 from PyQt5.QtCore import QCoreApplication
 
@@ -22,6 +22,7 @@ class geomelLongestFlowPath(QgsProcessingAlgorithm):
         self.addParameter(QgsProcessingParameterVectorLayer('PourPoint', 'Discharge Point', types=[QgsProcessing.TypeVectorPoint], defaultValue=None))
         self.addParameter(QgsProcessingParameterField('PourPointIDField', 'Pour Point ID Field', type=QgsProcessingParameterField.Numeric, parentLayerParameterName='PourPoint', allowMultiple=False, defaultValue=''))
         self.addParameter(QgsProcessingParameterVectorLayer('WatershedBasin', 'Watershed Basin', types=[QgsProcessing.TypeVectorPolygon], defaultValue=None))
+        self.addParameter(QgsProcessingParameterEnum('Method', 'Method', options=['Custom Ranges (fastest)', 'Linear 10%', 'Brute Force (extremely slow)'], allowMultiple=False, defaultValue=['Custom Ranges (fastest)']))
         self.addParameter(QgsProcessingParameterFeatureSink('Longest_Stream','Longest_Stream' , type=QgsProcessing.TypeVectorLine, createByDefault=True, defaultValue=None))
 
 
@@ -88,10 +89,31 @@ class geomelLongestFlowPath(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
+        # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # 5.a Determine how many vertices have been created for the channel network, and accordingly set the number of 
+        #     farthest points to be considered for further analysis
+        #     Explanation: on a very sparse channel net, in a small basin, there may only be a very small number of vertices (eg 5). 
+        #     On a much bigger basin with a dense network there might be 100s or 1000s. So the number of points with max distances from the discharge point must
+        #     be chosen accordingly
+        alg_params = {
+            'INPUT': outputs['DistanceMatrixVerticesToPourPoint']['OUTPUT']
+        }
+        # Store the number of features (points that correspond to channel net vertices) in variable total_feats_count
+        total_feats_count = processing.run('geomel_watershed:count_feats', alg_params, context=context, feedback=feedback, is_child_algorithm=True)['count']
+        
+
+        max_feats_count = self.select_max_feats(total_feats_count, self.parameterAsEnum(parameters,'Method',context))
+        print(max_feats_count)
+
+        if feedback.isCanceled():
+            return {}       
+        
+        # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
         # 5. Using the Distance Matrix, select the 10 vertices that are the farthest from the Discharge Point
         #    These are the most likely to be the farthest springs, and thus the final extents of the longest channels
         alg_params = {
-            'EXPRESSION': ' \"Distance\" >= array_get(array_sort(array_agg(\"Distance\"),false),9)',
+            'EXPRESSION': ' \"Distance\" >= array_get(array_sort(array_agg(\"Distance\"),false),{})'.format(str(max_feats_count)),
             'INPUT': outputs['DistanceMatrixVerticesToPourPoint']['OUTPUT'],
             'METHOD': 0
         }
@@ -133,6 +155,7 @@ class geomelLongestFlowPath(QgsProcessingAlgorithm):
         # 7. Select the point with the maximum network cost. Since the cost calc method was 
         #    set to 'Shortest', the max cost corresponds to the maximum distance on the network
         #    and thus the longest hydrological stream
+        
         alg_params = {
             'EXPRESSION': ' \"cost\" >= array_get(array_sort(array_agg(\"cost\"),false),0)',
             'INPUT': outputs['ShortestPathPointToLayer']['OUTPUT'],
@@ -151,12 +174,13 @@ class geomelLongestFlowPath(QgsProcessingAlgorithm):
         }
         outputs['Longest_Stream'] = processing.run('native:saveselectedfeatures', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         
-        # 9. Rename the layer 
+        # 9. Calculate the Elongarion Ratio (Re) & Rename the layer 
         alg_params = {
-            'INPUT': outputs['Longest_Stream']['OUTPUT'],
+            'CHANNELS': outputs['Longest_Stream']['OUTPUT'],
+            'BASIN': parameters['WatershedBasin'],
             'OUTPUT': parameters['Longest_Stream']
         }
-        outputs['Longest_Flow_Path'] = processing.run('geomel_watershed:rename_output', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['Longest_Flow_Path'] = processing.run('geomel_watershed:elongation_ratio', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         # 10. Pack the dict key/value pair Longest_Stream in the results and return it
         results['Longest_Flow_Path'] = outputs['Longest_Flow_Path']['OUTPUT']
@@ -191,4 +215,34 @@ class geomelLongestFlowPath(QgsProcessingAlgorithm):
 
 
     def shortHelpString(self):
-        return self.tr('\n\n Extract the longest flow path. Note that the <b>discharge point</b> should be <b>ON</b> the Channel Network. Ensure this by editing the layer containing the point, and moving it with <b>Snapping</b> enabled.  \n\n\n\n\nDeveloped by E. Lymperis\n2021, Geomeletitiki S.A.')
+        return self.tr("\n\n Extract the longest flow path. Note that the <b>discharge point</b> should be <b>ON</b> the Channel Network. Ensure this by editing the layer containing the point, and moving it with <b>Snapping</b> enabled. Note also that the Discharge Point layer must contain a unidue integer field (an ID field). This has no functional role, but it is rather a result of the implementation of the algorithm. \n\n\n<b>Method</b> refers to the way the candidate <b>longest streams</b> are selected, based on their edge vertices' distances from the Discharge Point. Before building a graph and calculating on-network distances, the algorithm filters the channel network vertices that fall the farthest away from the discharge point, in order to save time building and analyzing the graph. \n\n1. <b>Custom ranges</b> is an optimised number of points to include, based on the total vertices of the network, and is the <b>fastest</b> approach. \n2. <b>Linear 10%</b> includes the 10 percent of the total points that are the farthest away from the Discharge. It is the recommended method. \n3. <b>Brute Force</b> builds a graph including all the vertices of the network (most of which are <b>NOT</b> actual springs/extreme points). It is by far the slowest, especially for big and complex networks, but is also <b>the most reliable</b>. \n\n For relatively large networks it is generally recommended to use one of the first two methods. The third one was included for <b>validation</b> and for special cases where the geometry of the channel network is irregular, so that none of the <b>most distant springs</b> (absolute linear distance to the discharge) is not actually the springs of the longest channel.     \n\n\n\n\nDeveloped by E. Lymperis\n2021, Geomeletitiki S.A.")
+
+    
+    def select_max_feats(self, total_feats_count, method):
+        if method == 0:
+            if total_feats_count <= 3:
+                max_feats_count = 1
+            elif total_feats_count <= 5:
+                max_feats_count = 2
+            elif total_feats_count <= 10:
+                max_feats_count = 3
+            elif total_feats_count <= 20:
+                max_feats_count = 4
+            elif total_feats_count <= 70:
+                max_feats_count = 6
+            elif total_feats_count <= 1000:
+                max_feats_count = 9
+            elif total_feats_count <= 5000:
+                max_feats_count = 19        
+            elif total_feats_count <= 10000:
+                max_feats_count = (total_feats_count//100)-1
+            else:
+                max_feats_count = (total_feats_count//500)-1
+        elif method==1:
+            if total_feats_count < 10:
+                max_feats_count = 1
+            else:
+                max_feats_count = total_feats_count//10
+        elif method==2:
+            max_feats_count = total_feats_count
+        return max_feats_count-1

@@ -35,7 +35,8 @@ from geomelWatershedStats import geomelWatershedStats
 from geomelWAttributes import geomelWAttributes
 from geomelStatisticsStandalone import geomelStatisticsStandalone
 from geomelLongestFlowPath import geomelLongestFlowPath
-from rename_output import Rename_Output
+from geomelElongation import geomelElongation
+from count_feats import count_feats
 
 from qgis.PyQt.QtGui import QIcon
 
@@ -60,7 +61,8 @@ class geomelBasinAnalysisProvider(QgsProcessingProvider):
         self.addAlgorithm(geomelWAttributes())
         self.addAlgorithm(geomelStatisticsStandalone())
         self.addAlgorithm(geomelLongestFlowPath())
-        self.addAlgorithm(Rename_Output())
+        self.addAlgorithm(geomelElongation())
+        self.addAlgorithm(count_feats())
 
     def id(self):
         return 'geomel_watershed'
