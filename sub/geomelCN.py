@@ -102,10 +102,13 @@ class geomelCN(QgsProcessingAlgorithm):
         corine_settings = open(os.path.join(settings_path, 'settings_corine.txt'), 'r')
         scs_settings = open(os.path.join(settings_path, 'settings_scs.txt'), 'r')
 
-
-        soil_path = os.path.join(scs_settings.read(), "edafmap_1997_8.shp")
-        corine_path = os.path.join(corine_settings.read(), "corine_2018.shp")
-
+        try:
+            soil_path = os.path.join(scs_settings.read(), "edafmap_1997_8.gpkg")
+            corine_path = os.path.join(corine_settings.read(), "corine_2018.gpkg")
+        except:
+            soil_path = os.path.join(scs_settings.read(), "edafmap_1997_8.shp")
+            corine_path = os.path.join(corine_settings.read(), "corine_2018.shp")
+        
         corine_settings.close()
         scs_settings.close() 
 
