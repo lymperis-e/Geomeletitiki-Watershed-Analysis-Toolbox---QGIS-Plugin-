@@ -40,8 +40,8 @@ class geomelCN(QgsProcessingAlgorithm):
     """
 
     OUTPUT = "Watershed_CN"
-    Corine = "W_Corine"
-    Soil = "W_LandUseSCS"
+    watershed_land_cover_output = "W_Corine"
+    watershed_soil_output = "W_LandUseSCS"
     Pour_Point_Name = "Pour_Point_Name"
 
     def tr(self, string):
@@ -75,6 +75,20 @@ class geomelCN(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                "SOIL_LAYER",
+                self.tr("Soil Map"),
+                types=[QgsProcessing.TypeVectorAnyGeometry],
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                "LAND_COVER_LAYER",
+                self.tr("Corine Land Cover"),
+                types=[QgsProcessing.TypeVectorAnyGeometry],
+            )
+        )
+        self.addParameter(
             QgsProcessingParameterString(
                 self.Pour_Point_Name, self.tr("Pour Point Name"), optional=True
             )
@@ -95,12 +109,12 @@ class geomelCN(QgsProcessingAlgorithm):
         )
         self.addParameter(
             QgsProcessingParameterVectorDestination(
-                self.Corine, self.tr("Watershed with Corine Classes")
+                self.watershed_land_cover_output, self.tr("Watershed with Corine Classes")
             )
         )
         self.addParameter(
             QgsProcessingParameterVectorDestination(
-                self.Soil, self.tr("Watershed with SCS Classes")
+                self.watershed_soil_output, self.tr("Watershed with SCS Classes")
             )
         )
 
@@ -109,19 +123,21 @@ class geomelCN(QgsProcessingAlgorithm):
         pp_name = self.parameterAsString(parameters, self.Pour_Point_Name, context)
         # Open the log file
         path_absolute = QgsProject.instance().readPath("./")
-        path = "/CN_Calculation_Log_{}_{}".format(pp_name, datetime.now())
+        path = f"/CN_Calculation_Log_{pp_name}_{datetime.now()}"
         path = path.replace(":", "_")
         path = path[:-7]
         path = path_absolute + path + ".txt"
 
-        log = open(path, "w")
+        log = open(path, "w", encoding="utf-8")
         log.write("Κλάση Κάλυψης Γης κατά Corine  /  % κάλυψη της λεκάνης \n")
         log.write(
             "-------------------------------------------------------------------------\n"
         )
 
         # 1. Crop Soil&Corine to extent
-        Watershed = self.parameterAsSource(parameters, "Watershed", context)
+        # watershed_layer = self.parameterAsSource(parameters, "Watershed", context)
+        # soil_layer = self.parameterAsSource(parameters, "SOIL_LAYER", context)
+        # land_cover_layer = self.parameterAsSource(parameters, "LAND_COVER_LAYER", context)
 
         # 2. Clip Corine and Soil layers to the exact shape of the watershed
         # Soil = processing.run('gdal:clipvectorbypolygon',
@@ -135,11 +151,12 @@ class geomelCN(QgsProcessingAlgorithm):
         # if feedback.isCanceled():
         #     return {}
         alg_params = {
-            "INPUT": "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:2100' typename='geonode:edafmap_1997_7' url='http://mapsportal.ypen.gr/geoserver/ows' version='auto'",
+            # "INPUT": "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:2100' typename='geonode:edafmap_1997_7' url='http://mapsportal.ypen.gr/geoserver/ows' version='auto'",
+            "INPUT": self.parameterAsVectorLayer(parameters, "SOIL_LAYER", context),
             "OVERLAY": self.parameterAsVectorLayer(parameters, "Watershed", context),
             "OUTPUT": parameters["W_LandUseSCS"],
         }
-        Soil = processing.run(
+        soil_layer = processing.run(
             "native:clip",
             alg_params,
             context=context,
@@ -158,11 +175,12 @@ class geomelCN(QgsProcessingAlgorithm):
 
         # Clip
         alg_params = {
-            "INPUT": "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:2100' typename='geonode:gr_clc2018' url='http://mapsportal.ypen.gr/geoserver/ows' version='auto'",
+            # "INPUT": "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:2100' typename='geonode:gr_clc2018' url='http://mapsportal.ypen.gr/geoserver/ows' version='auto'",
+            "INPUT": self.parameterAsVectorLayer(parameters, "LAND_COVER_LAYER", context),
             "OVERLAY": self.parameterAsVectorLayer(parameters, "Watershed", context),
             "OUTPUT": parameters["W_Corine"],
         }
-        Corine = processing.run(
+        land_cover_layer = processing.run(
             "native:clip",
             alg_params,
             context=context,
@@ -182,10 +200,10 @@ class geomelCN(QgsProcessingAlgorithm):
         )
 
         Union = processing.run(
-            "saga:polygonunion",
+            "sagang:polygonunion",
             {
-                "A": Corine["OUTPUT"],
-                "B": Soil["OUTPUT"],
+                "A": land_cover_layer["OUTPUT"],
+                "B": soil_layer["OUTPUT"],
                 "RESULT": "TEMPORARY_OUTPUT",
                 "SPLIT": True,
             },
@@ -196,26 +214,26 @@ class geomelCN(QgsProcessingAlgorithm):
 
         # 4. Calculate CN
         # Put intersections in a layer and add CN field
-        CN_labels = QgsVectorLayer(Union["RESULT"], "", "ogr")
+        cn_labels = QgsVectorLayer(Union["RESULT"], "", "ogr")
 
-        outFields = QgsFields()
+        out_fields = QgsFields()
 
         # 2. Then, I defined the fields
-        outFields.append(QgsField("Basin Percentage", QVariant.Double))
-        outFields.append(QgsField("Corine_Code", QVariant.Double))
-        outFields.append(QgsField("CORINE Descr", QVariant.String))
-        outFields.append(QgsField("Geo_Code", QVariant.String))
-        outFields.append(QgsField("LandUse_Code(1_7)", QVariant.Int))
-        outFields.append(QgsField("Hydro_Code(ABCD)", QVariant.String))
-        outFields.append(QgsField("CN", QVariant.Int))
+        out_fields.append(QgsField("Basin Percentage", QVariant.Double))
+        out_fields.append(QgsField("Corine_Code", QVariant.Double))
+        out_fields.append(QgsField("CORINE Descr", QVariant.String))
+        out_fields.append(QgsField("Geo_Code", QVariant.String))
+        out_fields.append(QgsField("LandUse_Code(1_7)", QVariant.Int))
+        out_fields.append(QgsField("Hydro_Code(ABCD)", QVariant.String))
+        out_fields.append(QgsField("CN", QVariant.Int))
 
         (sink, dest_id) = self.parameterAsSink(
             parameters,
             self.OUTPUT,
             context,
-            outFields,
-            CN_labels.wkbType(),
-            CN_labels.crs(),
+            out_fields,
+            cn_labels.wkbType(),
+            cn_labels.crs(),
         )
 
         geo_to_abcd_dict = {
@@ -297,27 +315,27 @@ class geomelCN(QgsProcessingAlgorithm):
         params_path = os.path.join(basePath, "parameters")
 
         conditions_index = self.parameterAsEnum(parameters, "Conditions", context)
-        geo_corine_to_CN_dict = {}
+        geo_corine_to_cn_dict = {}
 
         # Unfavorable
         if conditions_index == 0:
-            COND = "Δυσμενείς"
-            with open(os.path.join(params_path, "unfavorable.csv"), "r") as cond_file:
+            conditions = "Δυσμενείς"
+            with open(os.path.join(params_path, "unfavorable.csv"), "r",encoding="utf-8") as cond_file:
                 reader = csv.reader(cond_file)
-                geo_corine_to_CN_dict = {rows[0]: float(rows[1]) for rows in reader}
+                geo_corine_to_cn_dict = {rows[0]: float(rows[1]) for rows in reader}
 
         elif conditions_index == 1:
-            COND = "Μέσες"
-            with open(os.path.join(params_path, "mean.csv"), "r") as cond_file:
+            conditions = "Μέσες"
+            with open(os.path.join(params_path, "mean.csv"), "r", encoding="utf-8") as cond_file:
                 reader = csv.reader(cond_file)
-                geo_corine_to_CN_dict = {rows[0]: float(rows[1]) for rows in reader}
+                geo_corine_to_cn_dict = {rows[0]: float(rows[1]) for rows in reader}
 
         # Favorable Conditions
         else:
-            COND = "Ευμενείς"
-            with open(os.path.join(params_path, "favorable.csv"), "r") as cond_file:
+            conditions = "Ευμενείς"
+            with open(os.path.join(params_path, "favorable.csv"), "r", encoding="utf-8") as cond_file:
                 reader = csv.reader(cond_file)
-                geo_corine_to_CN_dict = {rows[0]: float(rows[1]) for rows in reader}
+                geo_corine_to_cn_dict = {rows[0]: float(rows[1]) for rows in reader}
 
         basin_area = None
         for f in self.parameterAsVectorLayer(
@@ -327,11 +345,11 @@ class geomelCN(QgsProcessingAlgorithm):
 
         corine_perc = defaultdict()
 
-        CN_perc = defaultdict()
+        cn_perc = defaultdict()
 
-        for feat in CN_labels.getFeatures():
+        for feat in cn_labels.getFeatures():
             try:
-                CN = None
+                cn = None
                 geo = feat["MY_EPIKR1"]
                 cor = feat["Code_18"]
 
@@ -346,7 +364,7 @@ class geomelCN(QgsProcessingAlgorithm):
                 geo_corine = str(cor_1_7) + geo_abcd
 
                 # Convert to CN
-                CN = geo_corine_to_CN_dict[geo_corine]
+                cn = geo_corine_to_cn_dict[geo_corine]
 
                 perc = (feat.geometry().area() / basin_area) * 100
                 perc = "%.3f" % round(perc, 5)
@@ -357,12 +375,12 @@ class geomelCN(QgsProcessingAlgorithm):
                 else:
                     corine_perc[corine_description] = float(perc)
 
-                if CN in CN_perc:
-                    CN_perc[CN] += float(perc)
+                if cn in cn_perc:
+                    cn_perc[cn] += float(perc)
                 else:
-                    CN_perc[CN] = float(perc)
+                    cn_perc[cn] = float(perc)
 
-                out_feat = QgsFeature(outFields)
+                out_feat = QgsFeature(out_fields)
                 out_feat.setGeometry(feat.geometry())
                 out_feat["Basin Percentage"] = perc
                 out_feat["Corine_Code"] = float(cor)
@@ -370,9 +388,9 @@ class geomelCN(QgsProcessingAlgorithm):
                 out_feat["Geo_Code"] = geo
                 out_feat["LandUse_Code(1_7)"] = cor_1_7
                 out_feat["Hydro_Code(ABCD)"] = geo_abcd
-                out_feat["CN"] = CN
+                out_feat["CN"] = cn
                 sink.addFeature(out_feat, QgsFeatureSink.FastInsert)
-            except:
+            except Exception:
                 continue
 
         for key, value in corine_perc.items():
@@ -382,23 +400,23 @@ class geomelCN(QgsProcessingAlgorithm):
         log.write("\n\n\n")
         log.write("\n\n\n")
         log.write("Αριθμός Καμπύλης CN  /  % κάλυψη της λεκάνης \n")
-        log.write("-----Συνθήκες: {}-----------\n".format(COND))
+        log.write("-----Συνθήκες: {}-----------\n".format(conditions))
         log.write(
             "-------------------------------------------------------------------------\n"
         )
 
-        Sum_CN_arithm = 0
-        Sum_CN_paronom = 0
-        for key, value in CN_perc.items():
+        sum_cn_numerator = 0 # Αριθμητής
+        sum_cn_denominator = 0 # Παρονομαστής
+        for key, value in cn_perc.items():
             # Write a log entry for each CN and its %cover of the basin
             log.write(str(key) + ": " + str(value) + "\n")
 
-            Sum_CN_arithm += key * value
-            Sum_CN_paronom += value
+            sum_cn_numerator += key * value
+            sum_cn_denominator += value
 
         log.write("\n\n")
-        Sum_CN = Sum_CN_arithm / Sum_CN_paronom
-        log.write("Συνισταμένη Τιμή CN (χωρικά σταθμισμένη): " + str(Sum_CN))
+        sum_cn = sum_cn_numerator / sum_cn_denominator
+        log.write("Συνισταμένη Τιμή CN (χωρικά σταθμισμένη): " + str(sum_cn))
 
         # Calculate and log urban cover
         log.write(

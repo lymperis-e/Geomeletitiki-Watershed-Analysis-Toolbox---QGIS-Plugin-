@@ -29,7 +29,7 @@ sys.path.append(os.path.join(pluginPath, "sub"))
 
 from qgis.core import QgsProcessingProvider
 from geomelMainA import geomelMainA
-from geomelMainB import geomelMainB
+from geomelMainB import Geomelmainb
 from geomelCN import geomelCN
 from geomelWatershedStats import geomelWatershedStats
 from geomelWAttributes import geomelWAttributes
@@ -58,7 +58,7 @@ class geomelBasinAnalysisProvider(QgsProcessingProvider):
 
     def loadAlgorithms(self):
         self.addAlgorithm(geomelMainA())
-        self.addAlgorithm(geomelMainB())
+        self.addAlgorithm(Geomelmainb())
         self.addAlgorithm(geomelCN())
         self.addAlgorithm(geomelWatershedStats())
         self.addAlgorithm(geomelWAttributes())

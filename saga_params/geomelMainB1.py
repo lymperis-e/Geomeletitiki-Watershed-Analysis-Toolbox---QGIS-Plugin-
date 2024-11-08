@@ -125,6 +125,20 @@ class Geomelmainb(QgsProcessingAlgorithm):
                 defaultValue=os.path.join(basePath, "basin_scs.gpkg"),
             )
         )
+        self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                "SOIL_LAYER",
+                self.tr("Soil Map"),
+                types=[QgsProcessing.TypeVectorAnyGeometry],
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                "LAND_COVER_LAYER",
+                self.tr("Corine Land Cover"),
+                types=[QgsProcessing.TypeVectorAnyGeometry],
+            )
+        )
 
     def processAlgorithm(self, parameters, context, model_feedback):
         Pour_Point = self.parameterAsVectorLayer(parameters, "discharge_point", context)
@@ -371,6 +385,8 @@ class Geomelmainb(QgsProcessingAlgorithm):
             "W_Corine": parameters["Basincorine"],
             "W_LandUseSCS": parameters["Basinscs"],
             "Watershed_CN": parameters["Basincn"],
+            "SOIL_LAYER": parameters["SOIL_LAYER"],
+            "LAND_COVER_LAYER": parameters["LAND_COVER_LAYER"],
         }
         outputs["GeomeletitikiCnCalculator"] = processing.run(
             "geomel_watershed:geomelCN",
@@ -386,16 +402,16 @@ class Geomelmainb(QgsProcessingAlgorithm):
         return results
 
     def name(self):
-        return "geomelMainB1"
+        return "geomelMainB"
 
     def displayName(self):
-        return "geomelMainB1"
+        return "geomelMainB"
 
     def group(self):
-        return ""
+        return self.tr('Geomeletitiki Hydrology Analysis')
 
     def groupId(self):
-        return ""
+        return 'geomel_hydro_main'
 
     def createInstance(self):
         return Geomelmainb()
