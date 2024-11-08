@@ -396,8 +396,8 @@ class Geomelmainb(QgsProcessingAlgorithm):
             is_child_algorithm=True,
         )
         results["Basincn"] = outputs["GeomeletitikiCnCalculator"]["Watershed_CN"]
-        results["Basincorine"] = outputs["GeomeletitikiCnCalculator"]["W_Corine"]
-        results["Basinscs"] = outputs["GeomeletitikiCnCalculator"]["W_LandUseSCS"]
+        # results["Basincorine"] = outputs["GeomeletitikiCnCalculator"]["W_Corine"]
+        # results["Basinscs"] = outputs["GeomeletitikiCnCalculator"]["W_LandUseSCS"]
 
         return results
 
