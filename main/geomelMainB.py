@@ -4,7 +4,7 @@ try:
 except:
     import processing
     
-from qgis.core import QgsProject, QgsVectorLayer, QgsProcessingParameterVectorLayer, QgsProcessingParameterNumber, QgsProcessingAlgorithm, QgsVectorLayer, QgsProcessingParameterVectorDestination, QgsProcessingParameterRasterLayer, QgsProcessingParameterVectorLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsProcessingParameterEnum, QgsProcessingParameterVectorLayer, QgsProcessingParameterNumber, QgsProcessingAlgorithm, QgsVectorLayer, QgsProcessingParameterVectorDestination, QgsProcessingParameterRasterLayer, QgsProcessingParameterVectorLayer
 from PyQt5.QtCore import QCoreApplication
 import ast
 
@@ -97,6 +97,7 @@ class geomelMainB(QgsProcessingAlgorithm):
                 defaultValue=50
             )
         )
+        self.addParameter(QgsProcessingParameterEnum('Conditions', 'Conditions', options=['Unfavorable', 'Mean', 'Favorable'], allowMultiple=False, defaultValue=['Mean']))
 
         self.addParameter(
             QgsProcessingParameterVectorDestination(
@@ -348,6 +349,7 @@ class geomelMainB(QgsProcessingAlgorithm):
         CN_Vector = processing.run('geomel_watershed:geomelCN',
                                    {'Watershed_CN':parameters['CN_Layer'],
                                    'Pour_Point_Name': os.path.basename(Pour_Point.source()).split('.')[0],
+                                   'Conditions': parameters['Conditions'],
                                     'W_Corine' : Corine,
                                     'W_LandUseSCS' : SCS,
                                     'Watershed' : Filtered_Watershed },

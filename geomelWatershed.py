@@ -79,6 +79,15 @@ class geomelBasinAnalysisPlugin(object):
         self.iface.addToolBarIcon(self.geomel3)        
 
 
+        #Button 4: Inverse Distance Gage Weighting
+        icon = QIcon(os.path.dirname(__file__) + "/icons/icon_4.png")
+        self.geomel4 = QAction(icon, "4. IDF Curves via Inverse Distance Gage Weighting Full", self.iface.mainWindow())
+        self.geomel4.triggered.connect(self.geomel4Dialog)
+        self.geomel4.setCheckable(False)
+        self.iface.addToolBarIcon(self.geomel4)   
+
+
+
         #Settings Dialog
         icon = QIcon(os.path.dirname(__file__) + "/icons/icon_gear.png")
         self.openSettings = QAction(icon, "Select data folder (Geomeletitiki W.A.)", self.iface.mainWindow())
@@ -98,6 +107,8 @@ class geomelBasinAnalysisPlugin(object):
     def geomel3Dialog(self):
         processing.execAlgorithmDialog('geomel_watershed:geomelLongestFlowPath', {})
 
+    def geomel4Dialog(self):
+        processing.execAlgorithmDialog('geomel_watershed:IDFCurves_Full', {})
 
 
     def showSettingsDialog(self):
@@ -121,6 +132,7 @@ class geomelBasinAnalysisPlugin(object):
             self.iface.removeToolBarIcon(self.geomel1)
             self.iface.removeToolBarIcon(self.geomel2)
             self.iface.removeToolBarIcon(self.geomel3)
+            self.iface.removeToolBarIcon(self.geomel4)
             self.iface.removeToolBarIcon(self.openSettings)
             self.iface.removeToolBarIcon(self.openPPoint)
             QgsApplication.processingRegistry().removeProvider(self.provider)

@@ -2,11 +2,11 @@
 name=Geomeletitiki Basin Analysis Toolbox
 qgisMinimumVersion=3.16
 description=Semi-automated Hydrological Basin Analysis toolbox.
-version=2.0.2
+version=2.1.5
 author=Lymperis Efstathios for Geomeletitiki Consulting Engineers S.A.
 email=geo.elymperis@gmail.com
 
-about=A specialised <b>watershed basin analysis</b> toolbox designed according to the methodology demanded by <b>Greek</b> legislative standards for Hydrological engineering studies. The plugin is divided into 3 main modules, which should be executed in the respective order
+about=A specialised <b>watershed basin analysis</b> toolbox designed according to the methodology demanded by <b>Greek</b> legislative standards for Hydrological engineering studies. The plugin is divided into 4 main modules, which should be executed in the respective order
     <b>Module1</b> comes first, and is executed for the whole area/DEM. The user must import a DEM and a Discharge Point (pour point) and also specify the Channel Initiation Threshold. The module produces the following outputs:
     -<b>Flow Directions</b> raster
     -<b>Filled DEM</b> raster (according to Wang&Liu's method)
@@ -25,14 +25,18 @@ about=A specialised <b>watershed basin analysis</b> toolbox designed according t
     -<b>Longest Flow Path</b>as a Vector Polyline
     -Its <b>Length</b> (in meters) and the <b>Elongation Ratio</b> of the basin, both as attributes of the above layer. 
     -----------------------------------------
+    <b>Module4</b> calculates the parameters needed to produce ICN Curves. It utilizes a dataset of greek meteo stations with their respective parameters and produces: 
+    -<b>Nearest Stations</b>as Vector Points. Each feature includes the station's parameters (κ, λ, ψ, θ, η) as well as its calculated hydrological parameters used for ICN curves extraction. 
+    The stations' distances from the watershed's centroid are calculated and used to apply Inverse Distance Gage Weighting for the calculation of each station's parameters contribution to the ICN cuves result.
     Through the use of this plugin, most of the analysis process is automated, with user intervention practically needed only to initialize Modules 1, 2 and 3. Land use data are derived from Copernicus' CORINE2018 dataset, and soil properties are extracted from the Soil Map of Greece. In order to use the plugin, you have to download these <a href="https://drive.google.com/drive/folders/1uwq5Fixi8lvyIi0cdFhbjfmaBQsONNnK?usp=sharing">datasets</a>. Unzip the file and then specify the shapefiles' location using the 5th button of the plugin toolbar ('select data folder')
 
     Methodology and testing by <a href="https://gr.linkedin.com/in/ioannis-georgakis-b730526a?trk=people-guest_people_search-card">Ioannis Georgakis</a>, Hydraulic Engineer M.Sc., implementation by <a href="https://gr.linkedin.com/in/efstathios-lymperis-975702188">Efstathios Lymperis</a>, Geologist & GIS Developer
 
+changelog= From v. 2.0.4 on, the default format of the soilo and land use data has been changed to Geopackage, due to errors encountered while processing the data in shapefile. Backwards compatibility has been built-in, but it is strongly recommended to download the new datasets (see description for the link). Added a new module, 
 tracker=https://github.com/lymperis-e/Geomeletitiki-Watershed-Analysis-Toolbox---QGIS-Plugin-/issues
 repository=https://github.com/lymperis-e/Geomeletitiki-Watershed-Analysis-Toolbox---QGIS-Plugin-
 hasProcessingProvider=yes
-tags=python, watershed analysis, hydrology, channel network, SCS, CN number, curve number, longest flow path, longest flow, greek
+tags=python, watershed analysis, hydrology, channel network, SCS, CN number, curve number, longest flow path, longest flow, greek, gr
 homepage=https://www.geomeletitiki.gr/
 category=Analysis
 icon=icon.png

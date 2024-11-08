@@ -1,200 +1,182 @@
 import os
+from datetime import datetime
+
+from qgis.core import QgsProject
+from qgis.core import QgsProcessing
+from qgis.core import QgsProcessingAlgorithm
+from qgis.core import QgsProcessingMultiStepFeedback
+from qgis.core import QgsProcessingParameterRasterLayer
+from qgis.core import QgsProcessingParameterNumber
+from qgis.core import QgsProcessingParameterRasterDestination
+from qgis.core import QgsProcessingParameterVectorDestination
+
 try:
     from qgis import processing
 except:
     import processing
 
-from qgis.core import QgsProject, QgsProcessingParameterRasterDestination, QgsProcessingParameterVectorDestination, QgsProcessingParameterNumber, QgsProcessingParameterRasterLayer, QgsProcessingAlgorithm
-from datetime import datetime
-from qgis.PyQt.QtCore import QCoreApplication
-
-
 
 class geomelMainA(QgsProcessingAlgorithm):
-    
-    DEM = 'DEM'
-    Channel_Initiation_Threshold = 'Channel_Initiation_Threshold'
-   
-
-    def tr(self, string):
-        """
-        Returns a translatable string with the self.tr() function.
-        """
-        return QCoreApplication.translate('Processing', string)
-
-
-    def createInstance(self):
-        # Must return a new copy of your algorithm.
-        return geomelMainA()
-
-
-    def name(self):
-        """
-        Returns the unique algorithm name.
-        """
-        return 'geomelMainA'
-
-
-    def displayName(self):
-        """
-        Returns the translated algorithm name.
-        """
-        return self.tr('1. Filled DEM & Channel Network')
-
-
-    def group(self):
-        """
-        Returns the name of the group this algorithm belongs to.
-        """
-        return self.tr('Geomeletitiki Hydrology Analysis')
-
-
-    def groupId(self):
-        """
-        Returns the unique ID of the group this algorithm belongs
-        to.
-        """
-        return 'geomel_hydro_main'
-
-
-    def shortHelpString(self):
-        """
-        Returns a localised short help string for the algorithm.
-        """
-        return self.tr('Note: Use this module first, <b>if</b> you NEED TO SPECIFY THE DISCHARGE POINT and <b>then</b> run module 2. If you already know the exact position of the discharge point you can directly use module 2 \n\n<b>Note</b>: the Channel Initiation Threshold is the minimum number of cells (raster pixels) that drain through a particular cell A, in order for A to be labeled as part of a Channel. The default value is 40,000 and was specified to produce an adequately dense Channel Network on a 10Km x 8Km DEM with 3m spatial resolution. This number needs to be adjusted based on the size of the basin as well as the quality of the DEM.\n\n\n\n\nDeveloped by E. Lymperis\n2021, Geomeletitiki S.A.')
-
 
     def initAlgorithm(self, config=None):
-
-        basePath =  QgsProject.instance().readPath("./")
-
+        basePath = QgsProject.instance().readPath("./")
 
         self.addParameter(
-            QgsProcessingParameterRasterLayer(
-                self.DEM,
-                self.tr('DEM')
-            )
+            QgsProcessingParameterRasterLayer("dem", "DEM", defaultValue=None)
         )
-        
         self.addParameter(
             QgsProcessingParameterNumber(
-                self.Channel_Initiation_Threshold,
-                self.tr('Channel Initiation Threshold'),
-                defaultValue=40000
-            )
-        )
-
-       
-        self.addParameter(
-            QgsProcessingParameterRasterDestination(
-                'Flow_Direction',
-                self.tr('Flow Direction'),
-                defaultValue = os.path.join(basePath, 'Flow_Directions.sdat')
+                "channel_initiation_threshold",
+                "Channel initiation threshold (how many pixels must drain through a cell to be considered a channel)",
+                type=QgsProcessingParameterNumber.Integer,
+                minValue=1,
+                defaultValue=40000,
             )
         )
         self.addParameter(
             QgsProcessingParameterRasterDestination(
-                'Filled_DEM',
-                self.tr('Filled DEM'),
-                defaultValue = os.path.join(basePath, 'Filled_DEM.sdat')
-            )
-        )
-        self.addParameter(
-            QgsProcessingParameterRasterDestination(
-                'Channel_Network_Raster',
-                self.tr('Channel Network (Raster)'),
-                defaultValue = os.path.join(basePath, 'Channel_Net_Raster.sdat')
+                "Channel_network_raster",
+                "Channel network (raster)",
+                createByDefault=True,
+                defaultValue=os.path.join(basePath, "channel_network.sdat"),
             )
         )
         self.addParameter(
             QgsProcessingParameterVectorDestination(
-                'Channel_Network_Vector',
-                self.tr('Channel Network (Vector)'),
-                defaultValue = os.path.join(basePath, 'Channel_Network.shp')
+                "Channel_network_vector",
+                "Channel network (vector)",
+                type=QgsProcessing.TypeVectorLine,
+                createByDefault=True,
+                defaultValue=os.path.join(basePath, "channel_network.gpkg"),
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterRasterDestination(
+                "Filled_dem",
+                "Filled DEM",
+                createByDefault=True,
+                defaultValue=os.path.join(basePath, "filled_dem.sdat"),
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterRasterDestination(
+                "Flow_direction",
+                "Flow Directions",
+                createByDefault=True,
+                defaultValue=os.path.join(basePath, "flow_directions.sdat"),
             )
         )
 
+    def processAlgorithm(self, parameters, context, model_feedback):
+        # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
+        # overall progress through the model
+        feedback = QgsProcessingMultiStepFeedback(3, model_feedback)
+        results = {}
+        outputs = {}
 
-    def processAlgorithm(self, parameters, context, feedback):
-        
-        DEM = self.parameterAsRasterLayer(parameters,'DEM', context)
-        Pour_Point = self.parameterAsVectorLayer(parameters,'Pour_Point', context)
-        
-    
-        Catchment_Area = None
-    
-    
-        # 1. Run Fill(Wang&Liu)
-        RES_1 = processing.run('saga:fillsinkswangliu',
-                                   {'ELEV' : DEM,
-                                    'FDIR' : 'TEMPORARY_OUTPUT',
-                                    'FILLED' : 'TEMPORARY_OUTPUT',
-                                    'MINSLOPE' : 0.01,
-                                    'WSHED' : 'TEMPORARY_OUTPUT',
-                                    'FDIR': parameters['Flow_Direction'],
-                                    'FILLED': parameters['Filled_DEM']
-                                    },
-                                   is_child_algorithm=True,
-                                   context=context,
-                                   feedback=feedback)
-        if feedback.isCanceled():
-            return {}
-    
-    
-        #Results 1
-        Flow_Direction = RES_1["FDIR"]
-        Filled_DEM = RES_1["FILLED"]
-        
-    
-    
-    
-    
-        # 4. Catchment Area
-        Catchment_Area = processing.run('saga:catchmentarea',
-                                   {'ELEVATION' : Filled_DEM,
-                                    'FLOW' : 'TEMPORARY_OUTPUT',
-                                    'METHOD' : 0 } ,
-                                   is_child_algorithm=True,
-                                   context=context,
-                                   feedback=feedback)['FLOW']
-        if feedback.isCanceled():
-            return {}
-    
-    
-        # 5. Channel Network
-        RES_5 = processing.run('saga:channelnetwork',
-                                   { 'CHNLNTWRK' : parameters['Channel_Network_Raster'],
-                                    'CHNLROUTE' : 'TEMPORARY_OUTPUT',
-                                    'DIV_CELLS' : 10, 'DIV_GRID' : None,
-                                    'ELEVATION' :  Filled_DEM,
-                                    'INIT_GRID' : Catchment_Area,
-                                    'INIT_METHOD' : 2,
-                                    'INIT_VALUE' : parameters['Channel_Initiation_Threshold'],
-                                    'MINLEN' : 1,
-                                    'SHAPES' : parameters['Channel_Network_Vector'],
-                                    'SINKROUTE' : None,
-                                    'TRACE_WEIGHT' : None } ,
-                                   is_child_algorithm=True,
-                                   context=context,
-                                   feedback=feedback)
-        if feedback.isCanceled():
-            return {}
-        Channel_Network_Vector = RES_5['SHAPES']
-        Channel_Network_Raster = RES_5['CHNLNTWRK']
-    
-        
-       
-    
-        
-        return {
-            "Flow_Direction":Flow_Direction,
-            "Filled_DEM":Filled_DEM,
-            "Channel_Network_Raster": Channel_Network_Raster,
-            "Channel_Network_Vector":Channel_Network_Vector
+        # Fill sinks (wang & liu)
+        alg_params = {
+            "ELEV": parameters["dem"],
+            "MINSLOPE": 0.01,
+            "WSHED": "TEMPORARY_OUTPUT",
+            "FDIR": parameters["Flow_direction"],
+            "FILLED": parameters["Filled_dem"],
+            "WSHED": QgsProcessing.TEMPORARY_OUTPUT,
         }
+        outputs["FillSinksWangLiu"] = processing.run(
+            "sagang:fillsinkswangliu",
+            alg_params,
+            context=context,
+            feedback=feedback,
+            is_child_algorithm=True,
+        )
+        results["Filled_dem"] = outputs["FillSinksWangLiu"]["FILLED"]
+        results["Flow_direction"] = outputs["FillSinksWangLiu"]["FDIR"]
 
+        feedback.setCurrentStep(1)
+        if feedback.isCanceled():
+            return {}
 
+        # Catchment area
+        alg_params = {
+            "ACCU_LEFT": "TEMPORARY_OUTPUT",
+            "ACCU_MATERIAL": None,
+            "ACCU_RIGHT": "TEMPORARY_OUTPUT",
+            "ACCU_TARGET": outputs["FillSinksWangLiu"]["FILLED"],
+            "ACCU_TOTAL": "TEMPORARY_OUTPUT",
+            "CONVERGENCE": 1.1,
+            "ELEVATION": outputs["FillSinksWangLiu"]["FILLED"],
+            "FLOW": "TEMPORARY_OUTPUT",
+            "FLOW_LENGTH": "TEMPORARY_OUTPUT",
+            "FLOW_UNIT": 1,  # [1] cell area
+            "LINEAR_DIR": None,
+            "LINEAR_DO": False,
+            "LINEAR_MIN": 500,
+            "LINEAR_VAL": None,
+            "METHOD": 0,  # [0] Deterministic 8
+            "MFD_CONTOUR": False,
+            "NO_NEGATIVES": True,
+            "SINKROUTE": None,
+            "STEP": 1,
+            "VAL_INPUT": None,
+            "VAL_MEAN": "TEMPORARY_OUTPUT",
+            "WEIGHTS": None,
+            "WEIGHT_LOSS": "TEMPORARY_OUTPUT",
+            "FLOW": QgsProcessing.TEMPORARY_OUTPUT,
+            "VAL_MEAN": QgsProcessing.TEMPORARY_OUTPUT,
+        }
+        outputs["CatchmentArea"] = processing.run(
+            "sagang:catchmentarea",
+            alg_params,
+            context=context,
+            feedback=feedback,
+            is_child_algorithm=True,
+        )
 
+        feedback.setCurrentStep(2)
+        if feedback.isCanceled():
+            return {}
 
+        # Channel network
+        alg_params = {
+            "DIV_CELLS": 5,
+            "DIV_GRID": None,
+            "ELEVATION": outputs["FillSinksWangLiu"]["FILLED"],
+            "INIT_GRID": outputs["CatchmentArea"]["FLOW"],
+            "INIT_METHOD": 2,  # [2] Greater than
+            "INIT_VALUE": parameters["channel_initiation_threshold"],
+            "MINLEN": 1,
+            "SINKROUTE": None,
+            "TRACE_WEIGHT": None,
+            "CHNLNTWRK": parameters["Channel_network_raster"],
+            "CHNLROUTE": QgsProcessing.TEMPORARY_OUTPUT,
+            "SHAPES": parameters["Channel_network_vector"],
+        }
+        outputs["ChannelNetwork"] = processing.run(
+            "sagang:channelnetwork",
+            alg_params,
+            context=context,
+            feedback=feedback,
+            is_child_algorithm=True,
+        )
+        results["Channel_network_raster"] = outputs["ChannelNetwork"]["CHNLNTWRK"]
+        results["Channel_network_vector"] = outputs["ChannelNetwork"]["SHAPES"]
+        return results
 
+    def name(self):
+        return "geomelMainA"
 
+    def displayName(self):
+        return "1. Filled DEM & Channel Network"
+
+    def group(self):
+        return "Geomeletitiki Hydrology Analysis"
+
+    def groupId(self):
+        return "geomel_hydro_main"
+
+    def createInstance(self):
+        return geomelMainA()
+
+    def shortHelpString(self):
+        return "Note: Use this module first, <b>if</b> you NEED TO SPECIFY THE DISCHARGE POINT and <b>then</b> run module 2. If you already know the exact position of the discharge point you can directly use module 2 \n\n<b>Note</b>: the Channel Initiation Threshold is the minimum number of cells (raster pixels) that drain through a particular cell A, in order for A to be labeled as part of a Channel. The default value is 40,000 and was specified to produce an adequately dense Channel Network on a 10Km x 8Km DEM with 3m spatial resolution. This number needs to be adjusted based on the size of the basin as well as the quality of the DEM.\n\n\n\n\nDeveloped by E. Lymperis\n2021, Geomeletitiki S.A."

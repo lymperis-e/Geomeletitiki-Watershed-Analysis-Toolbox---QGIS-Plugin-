@@ -48,6 +48,7 @@ class DataSettingsDialog(QDialog, FORM_CLASS):
         self.scs_dialog.setFilePath(scs_path.read())
         corine_path.close()
         scs_path.close()
+        self.openConditionsSettings.clicked.connect(self.openConditionsFolder)
         super(DataSettingsDialog, self).showEvent(event)
         
 
@@ -64,3 +65,11 @@ class DataSettingsDialog(QDialog, FORM_CLASS):
         self.close()
   
 
+    def openConditionsFolder(self):
+        try:
+            import os
+            path = os.path.join(os.path.dirname(__file__), 'parameters')
+            os.startfile(path)
+        except:
+            import webbrowser
+            webbrowser.open('file:///' + path)

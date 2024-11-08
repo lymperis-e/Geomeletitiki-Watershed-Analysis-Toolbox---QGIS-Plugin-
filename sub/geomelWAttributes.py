@@ -68,7 +68,7 @@ class geomelWAttributes(QgsProcessingAlgorithm):
                 area = (feat.geometry().area())/1000000
                 perimeter = (feat.geometry().length())/1000
                 area_per = "[{}, {}]".format(area, perimeter)
-                out_feat['Area (sq.Km)'] = area
+                out_feat['Area (sq. Km)'] = area
                 out_feat["Perimeter (Km)"] = perimeter
                 sink.addFeature(out_feat, QgsFeatureSink.FastInsert)
             else:
