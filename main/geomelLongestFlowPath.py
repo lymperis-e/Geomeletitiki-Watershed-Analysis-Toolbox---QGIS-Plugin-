@@ -1,3 +1,4 @@
+import os
 from qgis.core import QgsProcessing
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingMultiStepFeedback
@@ -16,10 +17,16 @@ try:
 except:
     from qgis import processing
 
+from geomelwatershed.utils.files import get_plugin_output_dir, get_or_create_path
+
 
 class geomelLongestFlowPath(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
+        results_folder = get_or_create_path(
+            os.path.join(get_plugin_output_dir(), "longest_flow_path")
+        )
+
         self.addParameter(
             QgsProcessingParameterVectorLayer(
                 "ChannelNetwork",
@@ -64,7 +71,7 @@ class geomelLongestFlowPath(QgsProcessingAlgorithm):
                     "Brute Force (extremely slow)",
                 ],
                 allowMultiple=False,
-                defaultValue=["Custom Ranges (fastest)"],
+                defaultValue=["Linear 10%"],
             )
         )
         self.addParameter(
@@ -73,7 +80,7 @@ class geomelLongestFlowPath(QgsProcessingAlgorithm):
                 "Longest_Stream",
                 type=QgsProcessing.TypeVectorLine,
                 createByDefault=True,
-                defaultValue=None,
+                defaultValue=os.path.join(results_folder, "longest_flow_path.gpkg"),
             )
         )
 
