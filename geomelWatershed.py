@@ -86,7 +86,7 @@ class geomelBasinAnalysisPlugin(object):
         self.geomel3.setCheckable(False)
         self.iface.addToolBarIcon(self.geomel3)
 
-        # Button 4: Inverse Distance Gage Weighting
+        # Button 4: Inverse Distance Gauge Weighting
         icon = QIcon(os.path.dirname(__file__) + "/icons/icon_4.png")
         self.geomel4 = QAction(
             icon,
