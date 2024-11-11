@@ -13,7 +13,7 @@ from qgis.core import (
     QgsProcessingOutputString,
     QgsProcessingAlgorithm,
 )
-from geomelwatershed.utils.files import get_plugin_output_dir, get_or_create_path
+from gwat.utils.files import get_plugin_output_dir, get_or_create_path
 
 
 class WatershedStatistics(QgsProcessingAlgorithm):

@@ -22,7 +22,7 @@ import os
 import ast
 
 # from ..utils.files import get_plugin_output_dir
-from geomelwatershed.utils.files import get_plugin_output_dir, get_or_create_path
+from gwat.utils.files import get_plugin_output_dir, get_or_create_path
 
 
 class WATStep2(QgsProcessingAlgorithm):

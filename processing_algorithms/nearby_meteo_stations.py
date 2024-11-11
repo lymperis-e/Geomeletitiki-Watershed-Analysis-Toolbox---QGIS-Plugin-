@@ -15,7 +15,7 @@ import os
 currentPath = os.path.dirname(__file__)
 basePath = os.path.dirname(currentPath)
 
-from geomelwatershed.utils.settings import meteo_stations_path
+from gwat.utils.settings import meteo_stations_path
 
 
 class NearbyMeteoStations(QgsProcessingAlgorithm):
