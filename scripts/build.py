@@ -1,3 +1,5 @@
+# Create a QGIS plugin .zip file
+
 import os
 import zipfile
 
@@ -17,9 +19,6 @@ IGNORE = [
     'README.md',
     'LICENSE',
     'requirements.txt',
-    'Pipfile',
-    'Pipfile.lock',
-    '*.log',
     '.pylintrc',
     '*.zip',
     '*.pyc',
@@ -27,26 +26,25 @@ IGNORE = [
     '*.pyd',
     '*.pyi',
     'test',
-    '__pycache__',
+    "__pycache__",
 ]
 
 def zipdir(path, ziph):
-    # ziph is the zipfile handle
+    # ziph is zipfile handle
     for root, dirs, files in os.walk(path):
-        # Remove ignored directories from the search path
+        
+        
         dirs[:] = [d for d in dirs if d not in IGNORE]
         for file in files:
             if not any([file.endswith(i) for i in IGNORE]):
-                # Calculate the relative path but ensure all files are in root of the zip
-                abs_path = os.path.join(root, file)
-                rel_path = os.path.relpath(abs_path, path)
-                ziph.write(abs_path, rel_path)
+                ziph.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(path, '..')))
             
 def main():
     plugin_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     print(f'Creating {ZIP_FILE} from {plugin_dir}')
     
-    # Create output directory if it doesn't exist
+    
+    # Create output directory
     if not os.path.exists(os.path.join(plugin_dir, BUILD_DIR)):
         os.makedirs(os.path.join(plugin_dir, BUILD_DIR))
     
