@@ -87,7 +87,7 @@ class IdfCurves(QgsProcessingAlgorithm):
             "OUTPUT": parameters["NearestStationsWithIdgw"],
         }
         outputs["Idgw2InverseDistanceGageWeighting"] = processing.run(
-            "gwat:inverse_dist_gauge_weighting",
+            "gwat:inverse_dist_gage_weighting",
             alg_params,
             context=context,
             feedback=feedback,
@@ -102,7 +102,7 @@ class IdfCurves(QgsProcessingAlgorithm):
         return "idf_curves"
 
     def displayName(self):
-        return "4. IDF Curves via Inverse Distance Gauge Weighting Full"
+        return "4. IDF Curves via Inverse Distance Gage Weighting Full"
 
     def group(self):
         return "core"

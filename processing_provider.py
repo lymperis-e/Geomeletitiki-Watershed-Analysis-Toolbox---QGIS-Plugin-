@@ -47,7 +47,7 @@ from watershed_stats_standalone import WatershedStatisticsStandalone
 from elongation_ratio import ElongationRatio
 from count_feats import FeatureCounter
 from nearby_meteo_stations import NearbyMeteoStations
-from inverse_dist_gauge_weighting import InverseDistGaugeWeighting
+from inverse_dist_gage_weighting import InverseDistGageWeighting
 
 
 from qgis.PyQt.QtGui import QIcon
@@ -72,7 +72,7 @@ class WATProcessingProvider(QgsProcessingProvider):
         self.addAlgorithm(ElongationRatio())
         self.addAlgorithm(FeatureCounter())
         self.addAlgorithm(NearbyMeteoStations())
-        self.addAlgorithm(InverseDistGaugeWeighting())
+        self.addAlgorithm(InverseDistGageWeighting())
         self.addAlgorithm(IdfCurves())
 
     def id(self):

@@ -17,7 +17,6 @@ IGNORE = [
     'dist',
     'build',
     'README.md',
-    'LICENSE',
     'requirements.txt',
     '.pylintrc',
     '*.zip',

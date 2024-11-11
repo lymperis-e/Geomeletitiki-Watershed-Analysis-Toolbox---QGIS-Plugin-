@@ -87,11 +87,11 @@ class WatershedAnalysisToolbox(object):
         self.step3.setCheckable(False)
         self.iface.addToolBarIcon(self.step3)
 
-        # Button 4: Inverse Distance Gauge Weighting
+        # Button 4: Inverse Distance Gage Weighting
         icon = QIcon(os.path.dirname(__file__) + "/assets/icons/icon_4.png")
         self.step4 = QAction(
             icon,
-            "4. IDF Curves via Inverse Distance Gauge Weighting Full",
+            "4. IDF Curves via Inverse Distance Gage Weighting Full",
             self.iface.mainWindow(),
         )
         self.step4.triggered.connect(self.openStep4)

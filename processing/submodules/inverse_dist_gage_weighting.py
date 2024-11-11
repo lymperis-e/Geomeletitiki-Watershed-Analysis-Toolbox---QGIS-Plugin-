@@ -21,7 +21,7 @@ except:
     from qgis import processing
 
 
-class InverseDistGaugeWeighting(QgsProcessingAlgorithm):
+class InverseDistGageWeighting(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
         self.addParameter(
@@ -166,10 +166,10 @@ class InverseDistGaugeWeighting(QgsProcessingAlgorithm):
         return QCoreApplication.translate("Processing", string)
 
     def name(self):
-        return "inverse_dist_gauge_weighting"
+        return "inverse_dist_gage_weighting"
 
     def createInstance(self):
-        return InverseDistGaugeWeighting()
+        return InverseDistGageWeighting()
 
     def displayName(self):
         return self.tr("IDF 2: Inverse Distance Gage Weighting for IDF Curves")
