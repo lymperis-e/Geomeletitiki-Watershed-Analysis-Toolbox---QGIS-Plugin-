@@ -20,7 +20,7 @@ except:
 from geomelwatershed.utils.files import get_plugin_output_dir, get_or_create_path
 
 
-class geomelLongestFlowPath(QgsProcessingAlgorithm):
+class LongestFlowPath(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
         results_folder = get_or_create_path(
@@ -317,10 +317,10 @@ class geomelLongestFlowPath(QgsProcessingAlgorithm):
         return QCoreApplication.translate("Processing", string)
 
     def name(self):
-        return "geomelLongestFlowPath"
+        return "longest_flow_path"
 
     def createInstance(self):
-        return geomelLongestFlowPath()
+        return LongestFlowPath()
 
     def displayName(self):
         return self.tr("3. Longest Flow Path")

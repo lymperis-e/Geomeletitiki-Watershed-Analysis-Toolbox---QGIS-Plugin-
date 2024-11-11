@@ -8,7 +8,7 @@ import processing
 from qgis.PyQt.QtCore import QCoreApplication
 
 
-class IDFCurves_Full(QgsProcessingAlgorithm):
+class IdfCurves(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
         self.addParameter(
@@ -68,7 +68,7 @@ class IDFCurves_Full(QgsProcessingAlgorithm):
             "NearestStations": QgsProcessing.TEMPORARY_OUTPUT,
         }
         outputs["Idgw1LocateNearestMeteoStations"] = processing.run(
-            "geomel_watershed:geomel_nearStations",
+            "geomel_watershed:nearby_meteo_stations",
             alg_params,
             context=context,
             feedback=feedback,
@@ -99,7 +99,7 @@ class IDFCurves_Full(QgsProcessingAlgorithm):
         return results
 
     def name(self):
-        return "IDFCurves_Full"
+        return "idf_curves"
 
     def displayName(self):
         return "4. IDF Curves via Inverse Distance Gauge Weighting Full"
@@ -111,7 +111,7 @@ class IDFCurves_Full(QgsProcessingAlgorithm):
         return "geomel_hydro_main"
 
     def createInstance(self):
-        return IDFCurves_Full()
+        return IdfCurves()
 
     def shortHelpString(self):
         """

@@ -1,14 +1,14 @@
-from qgis.core import QgsProcessing
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingMultiStepFeedback
 from qgis.core import QgsProcessingParameterFeatureSource
-import processing
 
 
 class count_feats(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
-        self.addParameter(QgsProcessingParameterFeatureSource('INPUT', 'INPUT', defaultValue=None))
+        self.addParameter(
+            QgsProcessingParameterFeatureSource("INPUT", "INPUT", defaultValue=None)
+        )
 
     def processAlgorithm(self, parameters, context, model_feedback):
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
@@ -17,27 +17,24 @@ class count_feats(QgsProcessingAlgorithm):
         results = {}
         outputs = {}
 
-        INPUT = self.parameterAsVectorLayer(parameters,'INPUT',context)
-        count=0
+        INPUT = self.parameterAsVectorLayer(parameters, "INPUT", context)
+        count = 0
         for f in INPUT.getFeatures():
-            count+=1
-        outputs['count'] = count
+            count += 1
+        outputs["count"] = count
         return outputs
 
-
-
-
     def name(self):
-        return 'count_feats'
+        return "count_feats"
 
     def displayName(self):
-        return 'Count Features (no output)'
+        return "Count Features (no output)"
 
     def group(self):
-        return 'Geomeletitiki Help Scripts'
+        return "Geomeletitiki Help Scripts"
 
     def groupId(self):
-        return 'geomel_hydro'
+        return "geomel_hydro"
 
     def createInstance(self):
         return count_feats()

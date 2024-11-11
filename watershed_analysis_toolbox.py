@@ -24,9 +24,7 @@ import os
 import sys
 import inspect
 
-from qgis.core import QgsProject, QgsApplication
-from .processing_provider import geomelBasinAnalysisProvider
-from .utils.wfs import add_wfs_layers
+from qgis.core import QgsApplication
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 
@@ -39,14 +37,17 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.core import QgsApplication
 import processing
 
+from .processing_provider import WATProcessingProvider
+from .utils.wfs import add_wfs_layers
 
-class geomelBasinAnalysisPlugin(object):
+
+class WatershedAnalysisToolbox(object):
 
     def __init__(self, iface):
         self.iface = iface
         self.settingsDialog = None
         self.PPointDialog = None
-        self.provider = geomelBasinAnalysisProvider()
+        self.provider = WATProcessingProvider()
 
     def initGui(self):
 
@@ -99,39 +100,39 @@ class geomelBasinAnalysisPlugin(object):
 
         # Settings Dialog
         icon = QIcon(os.path.dirname(__file__) + "/icons/icon_gear.png")
-        self.openSettings = QAction(
-            icon, "Select data folder (Geomeletitiki W.A.)", self.iface.mainWindow()
-        )
-        self.openSettings.triggered.connect(self.showSettingsDialog)
+        # self.openSettings = QAction(
+        #     icon, "Select data folder (Geomeletitiki W.A.)", self.iface.mainWindow()
+        # )
+        # self.openSettings.triggered.connect(self.showSettingsDialog)
         self.openSettings.setCheckable(False)
         self.iface.addToolBarIcon(self.openSettings)
 
         QgsApplication.processingRegistry().addProvider(self.provider)
 
     def geomel1Dialog(self):
-        processing.execAlgorithmDialog("geomel_watershed:geomelMainA", {})
+        processing.execAlgorithmDialog("geomel_watershed:step_1", {})
 
     def geomel2Dialog(self):
         # Add Corine & SCS layers
         land_cover_layer, soil_layer = add_wfs_layers(self.iface)
         if land_cover_layer and soil_layer:
-            processing.execAlgorithmDialog("geomel_watershed:geomelMainB", {
-                "SOIL_LAYER": soil_layer,
-                "LAND_COVER_LAYER": land_cover_layer
-            })
+            processing.execAlgorithmDialog(
+                "geomel_watershed:step_2",
+                {"SOIL_LAYER": soil_layer, "LAND_COVER_LAYER": land_cover_layer},
+            )
 
     def geomel3Dialog(self):
-        processing.execAlgorithmDialog("geomel_watershed:geomelLongestFlowPath", {})
+        processing.execAlgorithmDialog("geomel_watershed:longest_flow_path", {})
 
     def geomel4Dialog(self):
-        processing.execAlgorithmDialog("geomel_watershed:IDFCurves_Full", {})
+        processing.execAlgorithmDialog("geomel_watershed:idf_curves", {})
 
-    def showSettingsDialog(self):
-        if not self.settingsDialog:
-            from .dialogs.Data_Settings_Dialog import DataSettingsDialog
+    # def showSettingsDialog(self):
+    #     if not self.settingsDialog:
+    #         from .dialogs.Data_Settings_Dialog import DataSettingsDialog
 
-            self.settingsDialog = DataSettingsDialog(self.iface)
-        self.settingsDialog.show()
+    #         self.settingsDialog = DataSettingsDialog(self.iface)
+    #     self.settingsDialog.show()
 
     def showPourPointDialog(self):
         if not self.PPointDialog:
@@ -149,5 +150,5 @@ class geomelBasinAnalysisPlugin(object):
             self.iface.removeToolBarIcon(self.openSettings)
             self.iface.removeToolBarIcon(self.openPPoint)
             QgsApplication.processingRegistry().removeProvider(self.provider)
-        except:
+        except Exception:
             pass

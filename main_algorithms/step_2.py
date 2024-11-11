@@ -21,11 +21,16 @@ import processing
 import os
 import ast
 
+# from ..utils.files import get_plugin_output_dir
+from geomelwatershed.utils.files import get_plugin_output_dir, get_or_create_path
 
-class Geomelmainb(QgsProcessingAlgorithm):
+
+class WATStep2(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
-        basePath = QgsProject.instance().readPath("./")
+        results_folder = get_or_create_path(
+            os.path.join(get_plugin_output_dir(), "step_2")
+        )
 
         self.addParameter(
             QgsProcessingParameterRasterLayer(
@@ -56,7 +61,7 @@ class Geomelmainb(QgsProcessingAlgorithm):
                 type=QgsProcessing.TypeVectorAnyGeometry,
                 createByDefault=True,
                 # help="The raw watershed of the discharge point (needed because GDAL cant handle tmp files)",
-                defaultValue=os.path.join(basePath, "basin_raw.gpkg"),
+                defaultValue=os.path.join(results_folder, "basin_raw.gpkg"),
             )
         )
 
@@ -66,7 +71,7 @@ class Geomelmainb(QgsProcessingAlgorithm):
                 "Discharge Point Upslope Basin",
                 type=QgsProcessing.TypeVectorAnyGeometry,
                 createByDefault=True,
-                defaultValue=os.path.join(basePath, "upslope_basin.gpkg"),
+                defaultValue=os.path.join(results_folder, "upslope_basin.gpkg"),
             )
         )
         self.addParameter(
@@ -74,7 +79,7 @@ class Geomelmainb(QgsProcessingAlgorithm):
                 "BasinDEM",
                 "Basin DEM",
                 createByDefault=True,
-                defaultValue=os.path.join(basePath, "basin_dem.tif"),
+                defaultValue=os.path.join(results_folder, "basin_dem.tif"),
             )
         )
         self.addParameter(
@@ -83,7 +88,7 @@ class Geomelmainb(QgsProcessingAlgorithm):
                 "Basin Contours",
                 type=QgsProcessing.TypeVectorLine,
                 createByDefault=True,
-                defaultValue=os.path.join(basePath, "basin_contours.gpkg"),
+                defaultValue=os.path.join(results_folder, "basin_contours.gpkg"),
             )
         )
 
@@ -93,7 +98,7 @@ class Geomelmainb(QgsProcessingAlgorithm):
                 "Basin Channel Network",
                 type=QgsProcessing.TypeVectorAnyGeometry,
                 createByDefault=True,
-                defaultValue=os.path.join(basePath, "basin_channel_network.gpkg"),
+                defaultValue=os.path.join(results_folder, "basin_channel_network.gpkg"),
             )
         )
 
@@ -103,7 +108,7 @@ class Geomelmainb(QgsProcessingAlgorithm):
                 "Basin CN (Polygons)",
                 type=QgsProcessing.TypeVectorAnyGeometry,
                 createByDefault=True,
-                defaultValue=os.path.join(basePath, "basin_cn.gpkg"),
+                defaultValue=os.path.join(results_folder, "basin_cn.gpkg"),
             )
         )
 
@@ -113,7 +118,7 @@ class Geomelmainb(QgsProcessingAlgorithm):
                 "Basin Corine Classes (Polygons)",
                 type=QgsProcessing.TypeVectorAnyGeometry,
                 createByDefault=True,
-                defaultValue=os.path.join(basePath, "basin_corine.gpkg"),
+                defaultValue=os.path.join(results_folder, "basin_corine.gpkg"),
             )
         )
         self.addParameter(
@@ -122,20 +127,20 @@ class Geomelmainb(QgsProcessingAlgorithm):
                 "Basin SCS Classes (Polygons)",
                 type=QgsProcessing.TypeVectorAnyGeometry,
                 createByDefault=True,
-                defaultValue=os.path.join(basePath, "basin_scs.gpkg"),
+                defaultValue=os.path.join(results_folder, "basin_scs.gpkg"),
             )
         )
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 "SOIL_LAYER",
-                self.tr("Soil Map"),
+                "Soil Map",
                 types=[QgsProcessing.TypeVectorAnyGeometry],
             )
         )
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 "LAND_COVER_LAYER",
-                self.tr("Corine Land Cover"),
+                "Corine Land Cover",
                 types=[QgsProcessing.TypeVectorAnyGeometry],
             )
         )
@@ -376,9 +381,7 @@ class Geomelmainb(QgsProcessingAlgorithm):
         # Geomeletitiki CN Calculator
         alg_params = {
             "Conditions": 1,  # Mean
-            "Pour_Point_Name": os.path.basename(Pour_Point.source()).split(".")[
-                0
-            ],
+            "Pour_Point_Name": os.path.basename(Pour_Point.source()).split(".")[0],
             "Watershed": outputs["GeomeletitikiWatershedAttributes"][
                 "Filtered_Watershed"
             ],
@@ -389,29 +392,29 @@ class Geomelmainb(QgsProcessingAlgorithm):
             "LAND_COVER_LAYER": parameters["LAND_COVER_LAYER"],
         }
         outputs["GeomeletitikiCnCalculator"] = processing.run(
-            "geomel_watershed:geomelCN",
+            "geomel_watershed:watershed_cn",
             alg_params,
             context=context,
             feedback=feedback,
             is_child_algorithm=True,
         )
         results["Basincn"] = outputs["GeomeletitikiCnCalculator"]["Watershed_CN"]
-        results["Basincorine"] = outputs["GeomeletitikiCnCalculator"]["W_Corine"]
-        results["Basinscs"] = outputs["GeomeletitikiCnCalculator"]["W_LandUseSCS"]
+        # results["Basincorine"] = outputs["GeomeletitikiCnCalculator"]["W_Corine"]
+        # results["Basinscs"] = outputs["GeomeletitikiCnCalculator"]["W_LandUseSCS"]
 
         return results
 
     def name(self):
-        return "geomelMainB"
+        return "step_2"
 
     def displayName(self):
-        return "geomelMainB"
+        return "2. Advanced Analysis"
 
     def group(self):
-        return self.tr('Geomeletitiki Hydrology Analysis')
+        return "Geomeletitiki Hydrology Analysis"
 
     def groupId(self):
-        return 'geomel_hydro_main'
+        return "geomel_hydro_main"
 
     def createInstance(self):
-        return Geomelmainb()
+        return WATStep2()

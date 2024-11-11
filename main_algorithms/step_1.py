@@ -1,7 +1,5 @@
 import os
-from datetime import datetime
 
-from qgis.core import QgsProject
 from qgis.core import QgsProcessing
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingMultiStepFeedback
@@ -15,11 +13,15 @@ try:
 except:
     import processing
 
+from geomelwatershed.utils.files import get_plugin_output_dir, get_or_create_path
 
-class geomelMainA(QgsProcessingAlgorithm):
+
+class WATStep1(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
-        basePath = QgsProject.instance().readPath("./")
+        results_folder = get_or_create_path(
+            os.path.join(get_plugin_output_dir(), "step_1")
+        )
 
         self.addParameter(
             QgsProcessingParameterRasterLayer("dem", "DEM", defaultValue=None)
@@ -38,7 +40,7 @@ class geomelMainA(QgsProcessingAlgorithm):
                 "Channel_network_raster",
                 "Channel network (raster)",
                 createByDefault=True,
-                defaultValue=os.path.join(basePath, "channel_network.sdat"),
+                defaultValue=os.path.join(results_folder, "channel_network.sdat"),
             )
         )
         self.addParameter(
@@ -47,7 +49,7 @@ class geomelMainA(QgsProcessingAlgorithm):
                 "Channel network (vector)",
                 type=QgsProcessing.TypeVectorLine,
                 createByDefault=True,
-                defaultValue=os.path.join(basePath, "channel_network.gpkg"),
+                defaultValue=os.path.join(results_folder, "channel_network.gpkg"),
             )
         )
         self.addParameter(
@@ -55,7 +57,7 @@ class geomelMainA(QgsProcessingAlgorithm):
                 "Filled_dem",
                 "Filled DEM",
                 createByDefault=True,
-                defaultValue=os.path.join(basePath, "filled_dem.sdat"),
+                defaultValue=os.path.join(results_folder, "filled_dem.sdat"),
             )
         )
         self.addParameter(
@@ -63,7 +65,7 @@ class geomelMainA(QgsProcessingAlgorithm):
                 "Flow_direction",
                 "Flow Directions",
                 createByDefault=True,
-                defaultValue=os.path.join(basePath, "flow_directions.sdat"),
+                defaultValue=os.path.join(results_folder, "flow_directions.sdat"),
             )
         )
 
@@ -164,10 +166,10 @@ class geomelMainA(QgsProcessingAlgorithm):
         return results
 
     def name(self):
-        return "geomelMainA"
+        return "step_1"
 
     def displayName(self):
-        return "1. Filled DEM & Channel Network"
+        return "1. Filled DEM & Basic Analysis"
 
     def group(self):
         return "Geomeletitiki Hydrology Analysis"
@@ -176,7 +178,7 @@ class geomelMainA(QgsProcessingAlgorithm):
         return "geomel_hydro_main"
 
     def createInstance(self):
-        return geomelMainA()
+        return WATStep1()
 
     def shortHelpString(self):
         return "Note: Use this module first, <b>if</b> you NEED TO SPECIFY THE DISCHARGE POINT and <b>then</b> run module 2. If you already know the exact position of the discharge point you can directly use module 2 \n\n<b>Note</b>: the Channel Initiation Threshold is the minimum number of cells (raster pixels) that drain through a particular cell A, in order for A to be labeled as part of a Channel. The default value is 40,000 and was specified to produce an adequately dense Channel Network on a 10Km x 8Km DEM with 3m spatial resolution. This number needs to be adjusted based on the size of the basin as well as the quality of the DEM.\n\n\n\n\nDeveloped by E. Lymperis\n2021, Geomeletitiki S.A."

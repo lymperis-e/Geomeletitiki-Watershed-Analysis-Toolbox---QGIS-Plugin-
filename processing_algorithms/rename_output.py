@@ -53,7 +53,7 @@ class Rename_Output(QgsProcessingAlgorithm):
             source.sourceCrs(),
         )
         features = source.getFeatures()
-        for current, feature in enumerate(features):
+        for _, feature in enumerate(features):
 
             out_feat = QgsFeature(outFields)
             out_feat.setGeometry(feature.geometry())

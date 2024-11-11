@@ -14,12 +14,13 @@
 
 """
 
-__author__ = 'Lymperis Efstathios / Geomeletitiki S.A.'
-__date__ = '2021-02-16'
-__copyright__ = '(C) 2021 by Lymperis Efstathios / Geomeletitiki S.A.'
+__author__ = "Lymperis Efstathios / Geomeletitiki S.A."
+__date__ = "2021-02-16"
+__copyright__ = "(C) 2021 by Lymperis Efstathios / Geomeletitiki S.A."
 
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
-    from .geomelWatershed import geomelBasinAnalysisPlugin
-    return geomelBasinAnalysisPlugin(iface)
+    from .watershed_analysis_toolbox import WatershedAnalysisToolbox
+
+    return WatershedAnalysisToolbox(iface)
