@@ -111,8 +111,7 @@ class LongestFlowPath(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # 2. Extract the first vertex of each line feature representing a
-        #    stream channel.
+        # 2. Extract the first vertex of each line feature representing a stream channel.
         #    TODO: Rather than extracting all these vertices, calculate only the Springs & Junctions of the network
         alg_params = {
             "INPUT": QgsProcessingFeatureSourceDefinition(

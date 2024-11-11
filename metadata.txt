@@ -7,13 +7,14 @@ author=Lymperis Efstathios for Geomeletitiki Consulting Engineers S.A.
 email=geo.elymperis@gmail.com
 
 about=
-    <b>Version 3:</b> This is the new version of the <a href="https://plugins.qgis.org/plugins/geomelwatershed-master/">Geomeletitiki Watershed Analysis Toolbox</a>, which uses the SAGA Next Gen provider to support QGIS versions > 3.16. Please note the original plugin is now considered DEPRECATED.
+    <b>Version 3:</b> This is the new version of the <a href="https://plugins.qgis.org/plugins/geomelwatershed-master/">Geomeletitiki Watershed Analysis Toolbox</a>, which uses the SAGA Next Gen provider. Please note the original plugin is now considered DEPRECATED. 
+    In order to use this version, you must first setup the SAGA processing provider, using <a href="https://plugins.qgis.org/plugins/processing_saga_nextgen/">Processing Saga NextGen Provider </a>. Instructions are readily available online.
 
     <br/>A specialized <b>watershed basin analysis</b> toolbox designed according to the methodology demanded by <b>Greek</b> legislative standards for Hydrological engineering studies. The plugin is divided into 4 main modules, which should be executed in the respective order
 
 
     <h2>Module1</h2> 
-    comes first, and is executed for the whole area/DEM. The user must import a DEM and a Discharge Point (pour point) and also specify the Channel Initiation Threshold. The module produces the following outputs:
+    comes first, and is executed for the whole area/DEM. The user must provide a DEM and specify the Channel Initiation Threshold. The module produces the following outputs:
     -<b>Flow Directions</b> raster
     -<b>Filled DEM</b> raster (according to Wang&Liu's method)
     -<b>Channel Network</b> raster 
@@ -21,7 +22,7 @@ about=
 
 
     <h2>Module2</h2> 
-    handles basin/sub-basin level analysis. It ingests the Filled DEM and a Control Point.
+    handles basin/sub-basin level analysis. It ingests the Filled DEM and a Control Point (Pour Point)
     Outputs:
         -The <b>watershed</b> that drains through the Discharge Point (pour point) as a vector polygon (Watershed Basin)
         -<b>Curve Numbers</b> of the soil, as vector polygons -->CN Labels
@@ -32,7 +33,7 @@ about=
 
 
     <h2>Module3</h2> 
-    calculates the Longest Flow Path. 
+    calculates the Longest Flow Path (longest stream) in a basin.
     Outputs:
         -<b>Longest Flow Path</b>as a Vector Polyline
         -Its <b>Length</b> (in meters) and the <b>Elongation Ratio</b> of the basin, both as attributes of the above layer. 
@@ -46,8 +47,13 @@ about=
     The stations' distances from the watershed's centroid are calculated and used to apply Inverse Distance Gage Weighting for the calculation of each station's parameters contribution to the ICN cuves result.
     Through the use of this plugin, most of the analysis process is automated, with user intervention practically needed only to initialize Modules 1, 2 and 3. Land use data are derived from Copernicus' CORINE2018 dataset, and soil properties are extracted from the Soil Map of Greece. 
 
-    Methodology and testing by <a href="https://gr.linkedin.com/in/ioannis-georgakis-b730526a?trk=people-guest_people_search-card">Ioannis Georgakis</a>, Hydraulic Engineer M.Sc., implementation by <a href="https://gr.linkedin.com/in/efstathios-lymperis-975702188">Efstathios Lymperis</a>, Geologist & GIS Developer
-    <strong>Requirements:</strong> you need to install and configure the SAGA Next Gen plugin, as this plugin relies on SAGA's processing algorithms.
+    <h3>Credits</h3>
+    Conception & process design by <a href="https://gr.linkedin.com/in/ioannis-georgakis-b730526a?trk=people-guest_people_search-card">Ioannis Georgakis</a>, Hydraulic Engineer MSc,
+    Testing, QA and debuging by <a href="https://www.linkedin.com/in/eleftheria-koutsimari-4762b81b1/"> Eleftheria Koutsimari</a>, MSc Water Resources 
+    Implementation by <a href="https://gr.linkedin.com/in/efstathios-lymperis-975702188">Efstathios Lymperis</a>, Geologist & GIS Developer. 
+    
+    The plugin was originally developed at the Hydrology & Hydraulics dept. of <a href="https://www.geomeletitiki.gr/">Geomeletitiki Consulting Engineers</a>, and is currently independently maintained.
+    
 
 changelog= From v. 2.0.4 on, the default format of the soilo and land use data has been changed to Geopackage, due to errors encountered while processing the data in shapefile. Backwards compatibility has been built-in, but it is strongly recommended to download the new datasets (see description for the link). Added a new module, 
 tracker=https://github.com/lymperis-e/Geomeletitiki-Watershed-Analysis-Toolbox---QGIS-Plugin-/issues
