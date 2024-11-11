@@ -17,7 +17,7 @@ from qgis.PyQt.QtWidgets import QDialog
 
 
 FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(os.path.dirname(__file__), "Data_Settings_Dialog.ui")
+    os.path.join(os.path.dirname(__file__), "settings_dialog.ui")
 )
 
 corine_settings_location = os.path.join(
@@ -32,10 +32,10 @@ def tr(string):
     return QCoreApplication.translate("Processing", string)
 
 
-class DataSettingsDialog(QDialog, FORM_CLASS):
+class WATSettingsDialog(QDialog, FORM_CLASS):
     def __init__(self, iface):
         """Initialize the data settings dialog window."""
-        super(DataSettingsDialog, self).__init__(iface.mainWindow())
+        super(WATSettingsDialog, self).__init__(iface.mainWindow())
         self.setupUi(self)
         self.iface = iface
 
@@ -48,7 +48,7 @@ class DataSettingsDialog(QDialog, FORM_CLASS):
         corine_path.close()
         scs_path.close()
         self.openConditionsSettings.clicked.connect(self.openConditionsFolder)
-        super(DataSettingsDialog, self).showEvent(event)
+        super(WATSettingsDialog, self).showEvent(event)
 
     def accept(self):
         """Called when the OK button has been pressed."""

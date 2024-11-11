@@ -25,8 +25,8 @@ import os
 import sys
 
 pluginPath = os.path.dirname(__file__)
-sys.path.append(os.path.join(pluginPath, "main_algorithms"))
-sys.path.append(os.path.join(pluginPath, "processing_algorithms"))
+sys.path.append(os.path.join(pluginPath, "processing", "core"))
+sys.path.append(os.path.join(pluginPath, "processing", "submodules"))
 
 from qgis.core import QgsProcessingProvider
 
@@ -82,7 +82,7 @@ class WATProcessingProvider(QgsProcessingProvider):
         return self.tr("GWAT - Geomeletitiki Watershed Analysis Toolbox ")
 
     def icon(self):
-        return QIcon(os.path.join(pluginPath, "icons", "icon.png"))
+        return QIcon(os.path.join(pluginPath, "assets", "icons", "icon.png"))
 
     def longName(self):
         return self.name()

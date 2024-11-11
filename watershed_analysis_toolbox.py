@@ -52,54 +52,54 @@ class WatershedAnalysisToolbox(object):
     def initGui(self):
 
         # Button 1
-        icon = QIcon(os.path.dirname(__file__) + "/icons/icon_1.png")
-        self.geomel1 = QAction(
+        icon = QIcon(os.path.dirname(__file__) + "/assets/icons/icon_1.png")
+        self.step1 = QAction(
             icon, "1. Filled DEM & Channel Network", self.iface.mainWindow()
         )
-        self.geomel1.triggered.connect(self.geomel1Dialog)
-        self.geomel1.setCheckable(False)
-        self.iface.addToolBarIcon(self.geomel1)
+        self.step1.triggered.connect(self.openStep1)
+        self.step1.setCheckable(False)
+        self.iface.addToolBarIcon(self.step1)
 
         # Add Pour Point Button
-        icon = QIcon(os.path.dirname(__file__) + "/icons/icon_target.png")
+        icon = QIcon(os.path.dirname(__file__) + "/assets/icons/icon_target.png")
         self.openPPoint = QAction(
             icon, "Add a Discharge Point", self.iface.mainWindow()
         )
-        self.openPPoint.triggered.connect(self.showPourPointDialog)
+        self.openPPoint.triggered.connect(self.openPourPointDialog)
         self.openPPoint.setCheckable(False)
         self.iface.addToolBarIcon(self.openPPoint)
 
         # Button 2
-        icon = QIcon(os.path.dirname(__file__) + "/icons/icon_2.png")
-        self.geomel2 = QAction(
+        icon = QIcon(os.path.dirname(__file__) + "/assets/icons/icon_2.png")
+        self.step2 = QAction(
             icon,
             "2. Watershed, Contours, Land Cover & Curve Number",
             self.iface.mainWindow(),
         )
-        self.geomel2.triggered.connect(self.geomel2Dialog)
-        self.geomel2.setCheckable(False)
-        self.iface.addToolBarIcon(self.geomel2)
+        self.step2.triggered.connect(self.openStep2)
+        self.step2.setCheckable(False)
+        self.iface.addToolBarIcon(self.step2)
 
         # Button 3: Longest Flow Path
-        icon = QIcon(os.path.dirname(__file__) + "/icons/icon_3.png")
-        self.geomel3 = QAction(icon, "3. Longest Flow Path", self.iface.mainWindow())
-        self.geomel3.triggered.connect(self.geomel3Dialog)
-        self.geomel3.setCheckable(False)
-        self.iface.addToolBarIcon(self.geomel3)
+        icon = QIcon(os.path.dirname(__file__) + "/assets/icons/icon_3.png")
+        self.step3 = QAction(icon, "3. Longest Flow Path", self.iface.mainWindow())
+        self.step3.triggered.connect(self.openStep3)
+        self.step3.setCheckable(False)
+        self.iface.addToolBarIcon(self.step3)
 
         # Button 4: Inverse Distance Gauge Weighting
-        icon = QIcon(os.path.dirname(__file__) + "/icons/icon_4.png")
-        self.geomel4 = QAction(
+        icon = QIcon(os.path.dirname(__file__) + "/assets/icons/icon_4.png")
+        self.step4 = QAction(
             icon,
-            "4. IDF Curves via Inverse Distance Gage Weighting Full",
+            "4. IDF Curves via Inverse Distance Gauge Weighting Full",
             self.iface.mainWindow(),
         )
-        self.geomel4.triggered.connect(self.geomel4Dialog)
-        self.geomel4.setCheckable(False)
-        self.iface.addToolBarIcon(self.geomel4)
+        self.step4.triggered.connect(self.openStep4)
+        self.step4.setCheckable(False)
+        self.iface.addToolBarIcon(self.step4)
 
         # Settings Dialog
-        icon = QIcon(os.path.dirname(__file__) + "/icons/icon_gear.png")
+        icon = QIcon(os.path.dirname(__file__) + "/assets/icons/icon_gear.png")
         # self.openSettings = QAction(
         #     icon, "Select data folder (Geomeletitiki W.A.)", self.iface.mainWindow()
         # )
@@ -109,10 +109,10 @@ class WatershedAnalysisToolbox(object):
 
         QgsApplication.processingRegistry().addProvider(self.provider)
 
-    def geomel1Dialog(self):
+    def openStep1(self):
         processing.execAlgorithmDialog("gwat:step_1", {})
 
-    def geomel2Dialog(self):
+    def openStep2(self):
         # Add Corine & SCS layers
         land_cover_layer, soil_layer = add_wfs_layers(self.iface)
         if land_cover_layer and soil_layer:
@@ -121,10 +121,10 @@ class WatershedAnalysisToolbox(object):
                 {"SOIL_LAYER": soil_layer, "LAND_COVER_LAYER": land_cover_layer},
             )
 
-    def geomel3Dialog(self):
+    def openStep3(self):
         processing.execAlgorithmDialog("gwat:longest_flow_path", {})
 
-    def geomel4Dialog(self):
+    def openStep4(self):
         processing.execAlgorithmDialog("gwat:idf_curves", {})
 
     # def showSettingsDialog(self):
@@ -134,19 +134,19 @@ class WatershedAnalysisToolbox(object):
     #         self.settingsDialog = DataSettingsDialog(self.iface)
     #     self.settingsDialog.show()
 
-    def showPourPointDialog(self):
+    def openPourPointDialog(self):
         if not self.PPointDialog:
-            from .dialogs.Add_PPoint_Dialog import AddPPointDialog
+            from .ui.pour_point_dialog import AddPourPointDialog
 
-            self.PPointDialog = AddPPointDialog(self.iface)
+            self.PPointDialog = AddPourPointDialog(self.iface)
         self.PPointDialog.show()
 
     def unload(self):
         try:
-            self.iface.removeToolBarIcon(self.geomel1)
-            self.iface.removeToolBarIcon(self.geomel2)
-            self.iface.removeToolBarIcon(self.geomel3)
-            self.iface.removeToolBarIcon(self.geomel4)
+            self.iface.removeToolBarIcon(self.step1)
+            self.iface.removeToolBarIcon(self.step2)
+            self.iface.removeToolBarIcon(self.step3)
+            self.iface.removeToolBarIcon(self.step4)
             # self.iface.removeToolBarIcon(self.openSettings)
             self.iface.removeToolBarIcon(self.openPPoint)
             QgsApplication.processingRegistry().removeProvider(self.provider)
