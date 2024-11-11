@@ -258,7 +258,7 @@ class WATStep2(QgsProcessingAlgorithm):
             "Area_Perimeter": "TEMPORARY_OUTPUT",
         }
         outputs["GeomeletitikiWatershedAttributes"] = processing.run(
-            "geomel_watershed:geomelWAttributes",
+            "gwat:watershed_attributes",
             alg_params,
             context=context,
             feedback=feedback,
@@ -367,7 +367,7 @@ class WATStep2(QgsProcessingAlgorithm):
             ],  # pour_point_name,
         }
         outputs["GeomeletitikiWatershedStats"] = processing.run(
-            "geomel_watershed:geomelWatershedStats",
+            "gwat:watershed_statistics",
             alg_params,
             context=context,
             feedback=feedback,
@@ -378,7 +378,7 @@ class WATStep2(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Geomeletitiki CN Calculator
+        # Watershed Curve Numbers
         alg_params = {
             "Conditions": 1,  # Mean
             "Pour_Point_Name": os.path.basename(Pour_Point.source()).split(".")[0],
@@ -392,7 +392,7 @@ class WATStep2(QgsProcessingAlgorithm):
             "LAND_COVER_LAYER": parameters["LAND_COVER_LAYER"],
         }
         outputs["GeomeletitikiCnCalculator"] = processing.run(
-            "geomel_watershed:watershed_cn",
+            "gwat:watershed_cn",
             alg_params,
             context=context,
             feedback=feedback,
@@ -411,10 +411,10 @@ class WATStep2(QgsProcessingAlgorithm):
         return "2. Advanced Analysis"
 
     def group(self):
-        return "Geomeletitiki Hydrology Analysis"
+        return "core"
 
     def groupId(self):
-        return "geomel_hydro_main"
+        return "core"
 
     def createInstance(self):
         return WATStep2()

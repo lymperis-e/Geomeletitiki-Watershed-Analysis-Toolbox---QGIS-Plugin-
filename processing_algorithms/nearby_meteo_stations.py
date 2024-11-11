@@ -37,10 +37,10 @@ class NearbyMeteoStations(QgsProcessingAlgorithm):
         return self.tr("IDF 1: Locate Nearest Meteo Stations")
 
     def group(self):
-        return self.tr("Geomeletitiki Help Scripts")
+        return self.tr("submodules")
 
     def groupId(self):
-        return "geomel_hydro"
+        return "submodules"
 
     def shortHelpString(self):
         return self.tr(

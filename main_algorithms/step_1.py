@@ -172,10 +172,10 @@ class WATStep1(QgsProcessingAlgorithm):
         return "1. Filled DEM & Basic Analysis"
 
     def group(self):
-        return "Geomeletitiki Hydrology Analysis"
+        return "core"
 
     def groupId(self):
-        return "geomel_hydro_main"
+        return "core"
 
     def createInstance(self):
         return WATStep1()

@@ -57,16 +57,16 @@ class WatershedCN(QgsProcessingAlgorithm):
         return "watershed_cn"
 
     def displayName(self):
-        return self.tr("Geomeletitiki CN Calculator")
+        return self.tr("Watershed Curve Numbers")
 
     def group(self):
-        return self.tr("Geomeletitiki Help Scripts")
+        return self.tr("submodules")
 
     def groupId(self):
-        return "geomel_hydro"
+        return "submodules"
 
     def shortHelpString(self):
-        return self.tr("Geomeletitiki CN Calculator")
+        return self.tr("Watershed Curve Numbers")
 
     def initAlgorithm(self, config=None):
 

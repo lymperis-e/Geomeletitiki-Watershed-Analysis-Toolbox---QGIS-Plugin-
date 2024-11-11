@@ -20,7 +20,7 @@ except:
     import processing
 
 
-class geomelStatisticsStandalone(QgsProcessingAlgorithm):
+class WatershedStatisticsStandalone(QgsProcessingAlgorithm):
     """
     Calculate a watershed's stats
     """
@@ -39,22 +39,22 @@ class geomelStatisticsStandalone(QgsProcessingAlgorithm):
 
     def createInstance(self):
         # Must return a new copy of your algorithm.
-        return geomelStatisticsStandalone()
+        return WatershedStatisticsStandalone()
 
     def name(self):
-        return "geomelStatisticsStandalone"
+        return "watershed_stats_standalone"
 
     def displayName(self):
-        return self.tr("Geomeletitiki Statistics Module (stand-alone)")
+        return self.tr("Watershed Statistics Module (stand-alone)")
 
     def group(self):
-        return self.tr("Geomeletitiki Help Scripts")
+        return self.tr("submodules")
 
     def groupId(self):
-        return "geomel_hydro"
+        return "submodules"
 
     def shortHelpString(self):
-        return self.tr("Geomeletitiki Watershed Statistics Calculator")
+        return self.tr("Calculates basic statistics for a watershed")
 
     def initAlgorithm(self, config=None):
         self.addParameter(
@@ -85,7 +85,7 @@ class geomelStatisticsStandalone(QgsProcessingAlgorithm):
         path = path[:-7]
         path = path_absolute + path + ".txt"
 
-        log = open(path, "w")
+        log = open(path, "w", encoding="utf-8")
 
         Filled_DEM = self.parameterAsRasterLayer(parameters, self.Filled_DEM, context)
         Watershed_Basin = self.parameterAsVectorLayer(

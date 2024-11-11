@@ -104,28 +104,28 @@ class WatershedAnalysisToolbox(object):
         #     icon, "Select data folder (Geomeletitiki W.A.)", self.iface.mainWindow()
         # )
         # self.openSettings.triggered.connect(self.showSettingsDialog)
-        self.openSettings.setCheckable(False)
-        self.iface.addToolBarIcon(self.openSettings)
+        # self.openSettings.setCheckable(False)
+        # self.iface.addToolBarIcon(self.openSettings)
 
         QgsApplication.processingRegistry().addProvider(self.provider)
 
     def geomel1Dialog(self):
-        processing.execAlgorithmDialog("geomel_watershed:step_1", {})
+        processing.execAlgorithmDialog("gwat:step_1", {})
 
     def geomel2Dialog(self):
         # Add Corine & SCS layers
         land_cover_layer, soil_layer = add_wfs_layers(self.iface)
         if land_cover_layer and soil_layer:
             processing.execAlgorithmDialog(
-                "geomel_watershed:step_2",
+                "gwat:step_2",
                 {"SOIL_LAYER": soil_layer, "LAND_COVER_LAYER": land_cover_layer},
             )
 
     def geomel3Dialog(self):
-        processing.execAlgorithmDialog("geomel_watershed:longest_flow_path", {})
+        processing.execAlgorithmDialog("gwat:longest_flow_path", {})
 
     def geomel4Dialog(self):
-        processing.execAlgorithmDialog("geomel_watershed:idf_curves", {})
+        processing.execAlgorithmDialog("gwat:idf_curves", {})
 
     # def showSettingsDialog(self):
     #     if not self.settingsDialog:
@@ -147,7 +147,7 @@ class WatershedAnalysisToolbox(object):
             self.iface.removeToolBarIcon(self.geomel2)
             self.iface.removeToolBarIcon(self.geomel3)
             self.iface.removeToolBarIcon(self.geomel4)
-            self.iface.removeToolBarIcon(self.openSettings)
+            # self.iface.removeToolBarIcon(self.openSettings)
             self.iface.removeToolBarIcon(self.openPPoint)
             QgsApplication.processingRegistry().removeProvider(self.provider)
         except Exception:

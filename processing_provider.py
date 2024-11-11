@@ -39,15 +39,15 @@ from idf_curves import IdfCurves
 
 
 from watershed_cn import WatershedCN
-from geomelWatershedStats import geomelWatershedStats
-from geomelWAttributes import geomelWAttributes
-from geomelStatisticsStandalone import geomelStatisticsStandalone
+from watershed_statistics import WatershedStatistics
+from watershed_attributes import WatershedAttributes
+from watershed_stats_standalone import WatershedStatisticsStandalone
 
 
-from geomelElongation import geomelElongation
-from count_feats import count_feats
+from elongation_ratio import ElongationRatio
+from count_feats import FeatureCounter
 from nearby_meteo_stations import NearbyMeteoStations
-from geomelInverseDistance import geomelIDGW
+from inverse_dist_gauge_weighting import InverseDistGaugeWeighting
 
 
 from qgis.PyQt.QtGui import QIcon
@@ -65,21 +65,21 @@ class WATProcessingProvider(QgsProcessingProvider):
         self.addAlgorithm(WATStep1())
         self.addAlgorithm(WATStep2())
         self.addAlgorithm(WatershedCN())
-        self.addAlgorithm(geomelWatershedStats())
-        self.addAlgorithm(geomelWAttributes())
-        self.addAlgorithm(geomelStatisticsStandalone())
+        self.addAlgorithm(WatershedStatistics())
+        self.addAlgorithm(WatershedAttributes())
+        self.addAlgorithm(WatershedStatisticsStandalone())
         self.addAlgorithm(LongestFlowPath())
-        self.addAlgorithm(geomelElongation())
-        self.addAlgorithm(count_feats())
+        self.addAlgorithm(ElongationRatio())
+        self.addAlgorithm(FeatureCounter())
         self.addAlgorithm(NearbyMeteoStations())
-        self.addAlgorithm(geomelIDGW())
+        self.addAlgorithm(InverseDistGaugeWeighting())
         self.addAlgorithm(IdfCurves())
 
     def id(self):
-        return "geomel_watershed"
+        return "gwat"
 
     def name(self):
-        return self.tr("Geomeletitiki Watershed Analysis Toolbox")
+        return self.tr("GWAT - Geomeletitiki Watershed Analysis Toolbox ")
 
     def icon(self):
         return QIcon(os.path.join(pluginPath, "icons", "icon.png"))

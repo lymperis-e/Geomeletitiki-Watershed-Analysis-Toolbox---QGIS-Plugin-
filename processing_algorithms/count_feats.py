@@ -3,7 +3,7 @@ from qgis.core import QgsProcessingMultiStepFeedback
 from qgis.core import QgsProcessingParameterFeatureSource
 
 
-class count_feats(QgsProcessingAlgorithm):
+class FeatureCounter(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
         self.addParameter(
@@ -31,10 +31,10 @@ class count_feats(QgsProcessingAlgorithm):
         return "Count Features (no output)"
 
     def group(self):
-        return "Geomeletitiki Help Scripts"
+        return "submodules"
 
     def groupId(self):
-        return "geomel_hydro"
+        return "submodules"
 
     def createInstance(self):
-        return count_feats()
+        return FeatureCounter()

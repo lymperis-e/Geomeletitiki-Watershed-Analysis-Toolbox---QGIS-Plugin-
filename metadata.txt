@@ -1,5 +1,5 @@
 [general]
-name=Geomeletitiki Basin Analysis Toolbox
+name=GWAT - Watershed Analysis Toolbox by Geomeletitiki
 qgisMinimumVersion=3.16
 description=Semi-automated Hydrological Basin Analysis toolbox.
 version=2.1.5

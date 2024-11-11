@@ -68,7 +68,7 @@ class IdfCurves(QgsProcessingAlgorithm):
             "NearestStations": QgsProcessing.TEMPORARY_OUTPUT,
         }
         outputs["Idgw1LocateNearestMeteoStations"] = processing.run(
-            "geomel_watershed:nearby_meteo_stations",
+            "gwat:nearby_meteo_stations",
             alg_params,
             context=context,
             feedback=feedback,
@@ -87,7 +87,7 @@ class IdfCurves(QgsProcessingAlgorithm):
             "OUTPUT": parameters["NearestStationsWithIdgw"],
         }
         outputs["Idgw2InverseDistanceGageWeighting"] = processing.run(
-            "geomel_watershed:geomelIDGW",
+            "gwat:inverse_dist_gauge_weighting",
             alg_params,
             context=context,
             feedback=feedback,
@@ -105,10 +105,10 @@ class IdfCurves(QgsProcessingAlgorithm):
         return "4. IDF Curves via Inverse Distance Gauge Weighting Full"
 
     def group(self):
-        return "Geomeletitiki Hydrology Analysis"
+        return "core"
 
     def groupId(self):
-        return "geomel_hydro_main"
+        return "core"
 
     def createInstance(self):
         return IdfCurves()

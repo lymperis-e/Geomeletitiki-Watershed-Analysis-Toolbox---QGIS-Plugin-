@@ -180,7 +180,7 @@ class LongestFlowPath(QgsProcessingAlgorithm):
         alg_params = {"INPUT": outputs["DistanceMatrixVerticesToPourPoint"]["OUTPUT"]}
         # Store the number of features (points that correspond to channel net vertices) in variable total_feats_count
         total_feats_count = processing.run(
-            "geomel_watershed:count_feats",
+            "gwat:count_feats",
             alg_params,
             context=context,
             feedback=feedback,
@@ -299,7 +299,7 @@ class LongestFlowPath(QgsProcessingAlgorithm):
             "OUTPUT": parameters["Longest_Stream"],
         }
         outputs["Longest_Flow_Path"] = processing.run(
-            "geomel_watershed:elongation_ratio",
+            "gwat:elongation_ratio",
             alg_params,
             context=context,
             feedback=feedback,
@@ -326,10 +326,10 @@ class LongestFlowPath(QgsProcessingAlgorithm):
         return self.tr("3. Longest Flow Path")
 
     def group(self):
-        return self.tr("Geomeletitiki Hydrology Analysis")
+        return self.tr("core")
 
     def groupId(self):
-        return "geomel_hydro_main"
+        return "core"
 
     def shortHelpString(self):
         return self.tr(

@@ -16,7 +16,7 @@ from qgis.core import (
 from geomelwatershed.utils.files import get_plugin_output_dir, get_or_create_path
 
 
-class geomelWatershedStats(QgsProcessingAlgorithm):
+class WatershedStatistics(QgsProcessingAlgorithm):
     """
     Calculate a watershed's stats
     """
@@ -33,22 +33,22 @@ class geomelWatershedStats(QgsProcessingAlgorithm):
 
     def createInstance(self):
         # Must return a new copy of your algorithm.
-        return geomelWatershedStats()
+        return WatershedStatistics()
 
     def name(self):
-        return "geomelWatershedStats"
+        return "watershed_statistics"
 
     def displayName(self):
-        return self.tr("Geomeletitiki Watershed Stats")
+        return self.tr("Watershed Statιstics")
 
     def group(self):
-        return self.tr("Geomeletitiki Help Scripts")
+        return self.tr("submodules")
 
     def groupId(self):
-        return "geomel_hydro"
+        return "submodules"
 
     def shortHelpString(self):
-        return self.tr("Geomeletitiki CN Calculator")
+        return self.tr("Watershed Curve Numbers")
 
     def initAlgorithm(self, config=None):
 
@@ -86,7 +86,8 @@ class geomelWatershedStats(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):
 
         pp_name = self.parameterAsString(parameters, self.Pour_Point_Name, context)
-        # Check if the point name contains the crs etc... And throw them
+
+        # Check if the point name contains the crs etc... And throw them away
         pp_name = pp_name.split("?")[0]
         print(f"Pour Point: {pp_name}")
 
@@ -103,41 +104,41 @@ class geomelWatershedStats(QgsProcessingAlgorithm):
         path = path[:-7]
         path = logs_dir + path + ".txt"
 
-        log = open(path, "w", encoding="utf-8")
+        with open(path, "w", encoding="utf-8") as log:
 
-        basin = self.parameterAsRasterLayer(parameters, self.INPUT, context)
-        area = self.parameterAsDouble(parameters, "Area", context)
-        perimeter = self.parameterAsDouble(parameters, "Perimeter", context)
+            basin = self.parameterAsRasterLayer(parameters, self.INPUT, context)
+            area = self.parameterAsDouble(parameters, "Area", context)
+            perimeter = self.parameterAsDouble(parameters, "Perimeter", context)
 
-        basin_provider = basin.dataProvider()
-        stats = basin_provider.bandStatistics(1, QgsRasterBandStats.All)
-        min_elev = stats.minimumValue
-        max_elev = stats.maximumValue
-        mean = stats.mean
-        klisi = (max_elev - min_elev) * 0.001 / math.sqrt(area)
-        circularity_ratio = (4 * 3.1415 * area) / (perimeter**2)
-        compactness_coefficient = (0.282 * perimeter) / math.sqrt(area)
+            basin_provider = basin.dataProvider()
+            stats = basin_provider.bandStatistics(1, QgsRasterBandStats.All)
+            min_elev = stats.minimumValue
+            max_elev = stats.maximumValue
+            mean = stats.mean
+            klisi = (max_elev - min_elev) * 0.001 / math.sqrt(area)
+            circularity_ratio = (4 * 3.1415 * area) / (perimeter**2)
+            compactness_coefficient = (0.282 * perimeter) / math.sqrt(area)
 
-        output = defaultdict()
+            output = defaultdict()
 
-        output["min"] = min_elev
-        output["max"] = max_elev
-        output["mean"] = mean
-        output["klisi"] = klisi
-        output["RC"] = circularity_ratio
-        output["CC"] = compactness_coefficient
+            output["min"] = min_elev
+            output["max"] = max_elev
+            output["mean"] = mean
+            output["klisi"] = klisi
+            output["RC"] = circularity_ratio
+            output["CC"] = compactness_coefficient
 
-        log.write("Ελάχιστο Υψόμετρο: " + str(min_elev) + "m" + "\n")
-        log.write("Μέγιστο Υψόμετρο: " + str(max_elev) + "m" + "\n")
-        log.write("Μέσο Υψόμετρο: " + str(mean) + "m" + "\n")
-        log.write("Περίμετρος: " + str(perimeter) + "Km" + "\n")
-        log.write("Εμβαδό: " + str(area) + "Km2" + "\n")
-        log.write("Μέση Κλίση Υδρολογικής Λεκάνης: " + str(klisi) + "\n")
-        log.write("Δείκτης Κυκλικότητας (Rc): " + str(circularity_ratio) + "\n")
-        log.write("Δείκτης Συμπαγούς (Cc): " + str(compactness_coefficient) + "\n")
+            log.write("Ελάχιστο Υψόμετρο: " + str(min_elev) + "m" + "\n")
+            log.write("Μέγιστο Υψόμετρο: " + str(max_elev) + "m" + "\n")
+            log.write("Μέσο Υψόμετρο: " + str(mean) + "m" + "\n")
+            log.write("Περίμετρος: " + str(perimeter) + "Km" + "\n")
+            log.write("Εμβαδό: " + str(area) + "Km2" + "\n")
+            log.write("Μέση Κλίση Υδρολογικής Λεκάνης: " + str(klisi) + "\n")
+            log.write("Δείκτης Κυκλικότητας (Rc): " + str(circularity_ratio) + "\n")
+            log.write("Δείκτης Συμπαγούς (Cc): " + str(compactness_coefficient) + "\n")
 
-        del basin_provider
-        del basin
+            del basin_provider
+            del basin
 
         # Return the results
         return {self.OUTPUT: "{" + str(output).split("{")[1].split("}")[0]}

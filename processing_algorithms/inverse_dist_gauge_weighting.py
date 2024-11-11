@@ -21,7 +21,7 @@ except:
     from qgis import processing
 
 
-class geomelIDGW(QgsProcessingAlgorithm):
+class InverseDistGaugeWeighting(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
         self.addParameter(
@@ -98,7 +98,7 @@ class geomelIDGW(QgsProcessingAlgorithm):
         context = QgsExpressionContext()
         context.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(source))
 
-        for current, feature in enumerate(features):
+        for _, feature in enumerate(features):
             out_feat = QgsFeature(outFields)
             out_feat.setGeometry(feature.geometry())
 
@@ -166,19 +166,19 @@ class geomelIDGW(QgsProcessingAlgorithm):
         return QCoreApplication.translate("Processing", string)
 
     def name(self):
-        return "geomelIDGW"
+        return "inverse_dist_gauge_weighting"
 
     def createInstance(self):
-        return geomelIDGW()
+        return InverseDistGaugeWeighting()
 
     def displayName(self):
         return self.tr("IDF 2: Inverse Distance Gage Weighting for IDF Curves")
 
     def group(self):
-        return self.tr("Geomeletitiki Help Scripts")
+        return self.tr("submodules")
 
     def groupId(self):
-        return "geomel_hydro"
+        return "submodules"
 
     def shortHelpString(self):
         return self.tr(

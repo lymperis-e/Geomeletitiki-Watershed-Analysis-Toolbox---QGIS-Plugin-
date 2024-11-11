@@ -16,7 +16,7 @@ from qgis.core import (
 )
 
 
-class geomelWAttributes(QgsProcessingAlgorithm):
+class WatershedAttributes(QgsProcessingAlgorithm):
     INPUT = "Watershed"
     OUTPUT = "Filtered_Watershed"
     AreaPer = "Area_Perimeter"
@@ -25,19 +25,19 @@ class geomelWAttributes(QgsProcessingAlgorithm):
         super().__init__()
 
     def name(self):
-        return "geomelWAttributes"
+        return "watershed_attributes"
 
     def tr(self, text):
-        return QCoreApplication.translate("geomelWAttributes", text)
+        return QCoreApplication.translate("watershed_attributes", text)
 
     def displayName(self):
-        return self.tr("Geomeletitiki Watershed Attributes ")
+        return self.tr("Watershed Attributes")
 
     def group(self):
-        return self.tr("Geomeletitiki Help Scripts")
+        return self.tr("submodules")
 
     def groupId(self):
-        return "geomel_hydro"
+        return "submodules"
 
     def shortHelpString(self):
         return self.tr(

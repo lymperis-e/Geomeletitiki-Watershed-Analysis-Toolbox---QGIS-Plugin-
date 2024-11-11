@@ -18,7 +18,7 @@ except:
     from qgis import processing
 
 
-class geomelElongation(QgsProcessingAlgorithm):
+class ElongationRatio(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
         self.addParameter(
@@ -107,16 +107,16 @@ class geomelElongation(QgsProcessingAlgorithm):
         return "elongation_ratio"
 
     def createInstance(self):
-        return geomelElongation()
+        return ElongationRatio()
 
     def displayName(self):
         return self.tr("Rename Layer")
 
     def group(self):
-        return self.tr("Geomeletitiki Help Scripts")
+        return self.tr("submodules")
 
     def groupId(self):
-        return "geomel_hydro"
+        return "submodules"
 
     def shortHelpString(self):
         return self.tr("Rename Layer")
