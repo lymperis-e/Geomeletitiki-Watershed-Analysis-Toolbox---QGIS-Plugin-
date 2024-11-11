@@ -2,7 +2,7 @@
 name=GWAT - Watershed Analysis Toolbox by Geomeletitiki
 qgisMinimumVersion=3.16
 description=Semi-automated Hydrological Basin Analysis toolbox.
-version=2.1.5
+version=3.0.0
 author=Lymperis Efstathios for Geomeletitiki Consulting Engineers S.A.
 email=geo.elymperis@gmail.com
 
@@ -31,6 +31,7 @@ about=A specialised <b>watershed basin analysis</b> toolbox designed according t
     Through the use of this plugin, most of the analysis process is automated, with user intervention practically needed only to initialize Modules 1, 2 and 3. Land use data are derived from Copernicus' CORINE2018 dataset, and soil properties are extracted from the Soil Map of Greece. In order to use the plugin, you have to download these <a href="https://drive.google.com/drive/folders/1uwq5Fixi8lvyIi0cdFhbjfmaBQsONNnK?usp=sharing">datasets</a>. Unzip the file and then specify the shapefiles' location using the 5th button of the plugin toolbar ('select data folder')
 
     Methodology and testing by <a href="https://gr.linkedin.com/in/ioannis-georgakis-b730526a?trk=people-guest_people_search-card">Ioannis Georgakis</a>, Hydraulic Engineer M.Sc., implementation by <a href="https://gr.linkedin.com/in/efstathios-lymperis-975702188">Efstathios Lymperis</a>, Geologist & GIS Developer
+    <strong>Requirements:</strong> you need to install and configure the SAGA Next Gen plugin, as this plugin relies on SAGA's processing algorithms.
 
 changelog= From v. 2.0.4 on, the default format of the soilo and land use data has been changed to Geopackage, due to errors encountered while processing the data in shapefile. Backwards compatibility has been built-in, but it is strongly recommended to download the new datasets (see description for the link). Added a new module, 
 tracker=https://github.com/lymperis-e/Geomeletitiki-Watershed-Analysis-Toolbox---QGIS-Plugin-/issues
